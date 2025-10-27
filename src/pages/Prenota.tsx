@@ -254,7 +254,7 @@ const Prenota = () => {
                     onSelect={setSelectedDate}
                     disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                     locale={it}
-                    className="rounded-md border scale-95 sm:scale-100 md:scale-110 origin-center [&_button]:text-xs sm:[&_button]:text-sm md:[&_button]:text-base [&_button]:h-8 sm:[&_button]:h-9 md:[&_button]:h-10 [&_button]:w-8 sm:[&_button]:w-9 md:[&_button]:w-10"
+                    className="rounded-md border scale-100 sm:scale-110 md:scale-125 origin-center [&_button]:text-sm sm:[&_button]:text-base md:[&_button]:text-lg [&_button]:h-9 sm:[&_button]:h-10 md:[&_button]:h-11 [&_button]:w-9 sm:[&_button]:w-10 md:[&_button]:w-11"
                   />
                 </div>
               </CardContent>

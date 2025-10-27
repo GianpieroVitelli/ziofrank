@@ -233,39 +233,41 @@ const Prenota = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 pb-24 overflow-x-hidden">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-4 md:mb-8 text-center">
-            <h2 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Prenota il tuo appuntamento</h2>
-            <p className="text-sm md:text-base text-muted-foreground">Scegli data e orario per il tuo taglio</p>
+      <main className="w-full px-2 sm:px-4 md:px-6 py-4 md:py-8 pb-24 overflow-x-hidden max-w-7xl mx-auto">
+        <div className="w-full">
+          <div className="mb-4 md:mb-8 text-center px-2">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 md:mb-2">Prenota il tuo appuntamento</h2>
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Scegli data e orario per il tuo taglio</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 md:gap-8 overflow-x-hidden">
-            <Card className="w-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg md:text-xl">Seleziona la data</CardTitle>
-                <CardDescription className="text-sm">Scegli il giorno che preferisci</CardDescription>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
+            <Card className="w-full overflow-hidden">
+              <CardHeader className="pb-2 px-3 sm:px-4 md:px-6">
+                <CardTitle className="text-base sm:text-lg md:text-xl">Seleziona la data</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">Scegli il giorno che preferisci</CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-center px-1 md:px-6">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                  locale={it}
-                  className="rounded-md border w-full text-xs md:text-sm [&_button]:h-9 [&_button]:w-9 md:[&_button]:h-10 md:[&_button]:w-10 [&_button]:text-xs md:[&_button]:text-sm"
-                />
+              <CardContent className="flex justify-center px-1 sm:px-2 md:px-4">
+                <div className="w-full max-w-full overflow-hidden flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    locale={it}
+                    className="rounded-md border scale-[0.85] sm:scale-90 md:scale-100 origin-center [&_button]:text-[10px] sm:[&_button]:text-xs md:[&_button]:text-sm [&_button]:h-7 sm:[&_button]:h-8 md:[&_button]:h-9 [&_button]:w-7 sm:[&_button]:w-8 md:[&_button]:w-9"
+                  />
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="w-full">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg md:text-xl">Orari disponibili</CardTitle>
-                <CardDescription className="text-sm">
+            <Card className="w-full overflow-hidden">
+              <CardHeader className="pb-2 px-3 sm:px-4 md:px-6">
+                <CardTitle className="text-base sm:text-lg md:text-xl">Orari disponibili</CardTitle>
+                <CardDescription className="text-xs sm:text-sm break-words">
                   {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy", { locale: it }) : "Seleziona una data"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="px-2 md:px-6">
+              <CardContent className="px-2 sm:px-3 md:px-6">
                 {loading ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Caricamento...
@@ -279,8 +281,8 @@ const Prenota = () => {
                   </div>
                 ) : (
                   <>
-                     <div className="max-h-[400px] md:max-h-none overflow-y-auto scrollbar-hide">
-                       <div className="grid grid-cols-3 gap-2 md:gap-3 w-full">
+                    <div className="max-h-[350px] sm:max-h-[400px] md:max-h-none overflow-y-auto scrollbar-hide">
+                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full">
                         {allSlots.map((slot) => (
                           <Button
                             key={slot.time}
@@ -289,8 +291,8 @@ const Prenota = () => {
                             variant="outline"
                             className={
                               slot.available
-                                ? "h-12 md:h-14 text-sm md:text-base px-3 md:px-4 hover:bg-accent hover:text-accent-foreground font-semibold"
-                                : "h-12 md:h-14 text-sm md:text-base px-3 md:px-4 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-semibold"
+                                ? "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 hover:bg-accent hover:text-accent-foreground font-medium whitespace-nowrap"
+                                : "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-medium whitespace-nowrap"
                             }
                           >
                             {slot.time}
@@ -300,14 +302,14 @@ const Prenota = () => {
                     </div>
                     
                     {hasBookedSlots && (
-                      <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t">
+                      <div className="mt-3 sm:mt-4 md:mt-6 pt-3 sm:pt-4 md:pt-6 border-t">
                         <Button
                           size="lg"
-                          className="w-full h-auto py-4 md:py-5 text-base md:text-lg bg-accent text-accent-foreground hover:bg-accent/90 leading-tight font-semibold"
+                          className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-5 text-xs sm:text-sm md:text-base lg:text-lg px-3 sm:px-4 bg-accent text-accent-foreground hover:bg-accent/90 leading-snug font-semibold"
                           onClick={() => navigate("/")}
                         >
-                          <Phone className="w-5 h-5 md:w-6 md:h-6 mr-2 flex-shrink-0" />
-                          <span className="text-left">
+                          <Phone className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 flex-shrink-0" />
+                          <span className="text-left break-words">
                             L'orario che desideravi è occupato? Chiamami!
                           </span>
                         </Button>

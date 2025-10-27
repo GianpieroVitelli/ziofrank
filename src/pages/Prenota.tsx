@@ -15,8 +15,8 @@ const Prenota = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
-  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [allSlots, setAllSlots] = useState<{ time: string; available: boolean }[]>([]);
+  const [hasBookedSlots, setHasBookedSlots] = useState(false);
   const [loading, setLoading] = useState(false);
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
   const timezone = "Europe/Rome";
@@ -69,7 +69,8 @@ const Prenota = () => {
       const openHours = settings.open_hours[dayName] || [];
       
       if (openHours.length === 0) {
-        setAvailableSlots([]);
+        setAllSlots([]);
+        setHasBookedSlots(false);
         return;
       }
 
@@ -117,7 +118,7 @@ const Prenota = () => {
         .gte("start_time", startOfDay.toISOString())
         .lte("start_time", endOfDay.toISOString());
 
-      // Separate booked and available slots
+      // Create set of booked slots
       const bookedSlotsSet = new Set(
         (appointments || []).map(apt => {
           const aptTime = toZonedTime(new Date(apt.start_time), timezone);
@@ -125,11 +126,14 @@ const Prenota = () => {
         })
       );
 
-      const available = slots.filter(slot => !bookedSlotsSet.has(slot));
-      const booked = slots.filter(slot => bookedSlotsSet.has(slot));
+      // Combine all slots with availability status
+      const combinedSlots = slots.map(slot => ({
+        time: slot,
+        available: !bookedSlotsSet.has(slot)
+      }));
       
-      setAvailableSlots(available);
-      setBookedSlots(booked);
+      setAllSlots(combinedSlots);
+      setHasBookedSlots(bookedSlotsSet.size > 0);
     } catch (error: any) {
       console.error("Error loading slots:", error);
       toast.error("Errore nel caricamento degli slot disponibili");
@@ -265,7 +269,7 @@ const Prenota = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     Caricamento...
                   </div>
-                ) : availableSlots.length === 0 && bookedSlots.length === 0 ? (
+                ) : allSlots.length === 0 ? (
                   <div className="text-center py-8">
                     <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground">
@@ -275,38 +279,34 @@ const Prenota = () => {
                 ) : (
                   <>
                     <div className="grid grid-cols-3 gap-2">
-                      {availableSlots.map((slot) => (
+                      {allSlots.map((slot) => (
                         <Button
-                          key={slot}
-                          onClick={() => handleBooking(slot)}
-                          disabled={bookingSlot !== null}
+                          key={slot.time}
+                          onClick={() => slot.available && handleBooking(slot.time)}
+                          disabled={!slot.available || bookingSlot !== null}
                           variant="outline"
-                          className="h-12 hover:bg-accent hover:text-accent-foreground"
+                          className={
+                            slot.available
+                              ? "h-12 hover:bg-accent hover:text-accent-foreground"
+                              : "h-12 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
+                          }
                         >
-                          {slot}
-                        </Button>
-                      ))}
-                      {bookedSlots.map((slot) => (
-                        <Button
-                          key={slot}
-                          disabled
-                          variant="outline"
-                          className="h-12 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
-                        >
-                          {slot}
+                          {slot.time}
                         </Button>
                       ))}
                     </div>
                     
-                    {bookedSlots.length > 0 && (
+                    {hasBookedSlots && (
                       <div className="mt-6 pt-6 border-t">
                         <Button
-                          variant="outline"
-                          className="w-full"
+                          size="lg"
+                          className="w-full h-auto py-4 text-base bg-accent text-accent-foreground hover:bg-accent/90"
                           onClick={() => navigate("/")}
                         >
-                          <Phone className="w-4 h-4 mr-2" />
-                          L'orario che desideravi è occupato? Chiamami così da poter trovare una soluzione adatta a te!
+                          <Phone className="w-5 h-5 mr-2 flex-shrink-0" />
+                          <span className="text-left">
+                            L'orario che desideravi è occupato? Chiamami così da poter trovare una soluzione adatta a te!
+                          </span>
                         </Button>
                       </div>
                     )}

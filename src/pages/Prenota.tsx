@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
-import { Scissors, LogOut, Clock } from "lucide-react";
+import { Scissors, LogOut, Clock, Phone } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 const Prenota = () => {
@@ -16,6 +16,7 @@ const Prenota = () => {
   const [user, setUser] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
   const timezone = "Europe/Rome";
@@ -116,16 +117,19 @@ const Prenota = () => {
         .gte("start_time", startOfDay.toISOString())
         .lte("start_time", endOfDay.toISOString());
 
-      // Filter out booked slots
-      const bookedSlots = new Set(
+      // Separate booked and available slots
+      const bookedSlotsSet = new Set(
         (appointments || []).map(apt => {
           const aptTime = toZonedTime(new Date(apt.start_time), timezone);
           return format(aptTime, "HH:mm");
         })
       );
 
-      const available = slots.filter(slot => !bookedSlots.has(slot));
+      const available = slots.filter(slot => !bookedSlotsSet.has(slot));
+      const booked = slots.filter(slot => bookedSlotsSet.has(slot));
+      
       setAvailableSlots(available);
+      setBookedSlots(booked);
     } catch (error: any) {
       console.error("Error loading slots:", error);
       toast.error("Errore nel caricamento degli slot disponibili");
@@ -261,7 +265,7 @@ const Prenota = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     Caricamento...
                   </div>
-                ) : availableSlots.length === 0 ? (
+                ) : availableSlots.length === 0 && bookedSlots.length === 0 ? (
                   <div className="text-center py-8">
                     <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground">
@@ -269,19 +273,44 @@ const Prenota = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {availableSlots.map((slot) => (
-                      <Button
-                        key={slot}
-                        onClick={() => handleBooking(slot)}
-                        disabled={bookingSlot !== null}
-                        variant="outline"
-                        className="h-12 hover:bg-accent hover:text-accent-foreground"
-                      >
-                        {slot}
-                      </Button>
-                    ))}
-                  </div>
+                  <>
+                    <div className="grid grid-cols-3 gap-2">
+                      {availableSlots.map((slot) => (
+                        <Button
+                          key={slot}
+                          onClick={() => handleBooking(slot)}
+                          disabled={bookingSlot !== null}
+                          variant="outline"
+                          className="h-12 hover:bg-accent hover:text-accent-foreground"
+                        >
+                          {slot}
+                        </Button>
+                      ))}
+                      {bookedSlots.map((slot) => (
+                        <Button
+                          key={slot}
+                          disabled
+                          variant="outline"
+                          className="h-12 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
+                        >
+                          {slot}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    {bookedSlots.length > 0 && (
+                      <div className="mt-6 pt-6 border-t">
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => navigate("/")}
+                        >
+                          <Phone className="w-4 h-4 mr-2" />
+                          L'orario che desideravi è occupato? Chiamami così da poter trovare una soluzione adatta a te!
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardContent>
             </Card>

@@ -245,14 +245,14 @@ const Prenota = () => {
                 <CardTitle className="text-lg md:text-xl">Seleziona la data</CardTitle>
                 <CardDescription className="text-sm">Scegli il giorno che preferisci</CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-center px-2 md:px-6">
+              <CardContent className="flex justify-center px-1 md:px-6 overflow-x-auto">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                   locale={it}
-                  className="rounded-md border scale-90 md:scale-100"
+                  className="rounded-md border text-xs md:text-sm [&_button]:h-7 [&_button]:w-7 md:[&_button]:h-9 md:[&_button]:w-9 [&_button]:text-xs md:[&_button]:text-sm"
                 />
               </CardContent>
             </Card>
@@ -278,8 +278,8 @@ const Prenota = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="max-h-[400px] md:max-h-none overflow-y-auto pr-2">
-                      <div className="grid grid-cols-4 md:grid-cols-3 gap-1.5 md:gap-2">
+                     <div className="max-h-[350px] md:max-h-none overflow-y-auto pr-1 md:pr-2 -mr-1 md:mr-0">
+                       <div className="grid grid-cols-4 md:grid-cols-3 gap-1 md:gap-2">
                         {allSlots.map((slot) => (
                           <Button
                             key={slot.time}
@@ -288,8 +288,8 @@ const Prenota = () => {
                             variant="outline"
                             className={
                               slot.available
-                                ? "h-9 md:h-12 text-xs md:text-sm hover:bg-accent hover:text-accent-foreground"
-                                : "h-9 md:h-12 text-xs md:text-sm opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
+                                ? "h-8 md:h-12 text-[11px] md:text-sm px-1 md:px-4 hover:bg-accent hover:text-accent-foreground"
+                                : "h-8 md:h-12 text-[11px] md:text-sm px-1 md:px-4 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
                             }
                           >
                             {slot.time}
@@ -299,15 +299,15 @@ const Prenota = () => {
                     </div>
                     
                     {hasBookedSlots && (
-                      <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t">
+                      <div className="mt-3 md:mt-6 pt-3 md:pt-6 border-t">
                         <Button
                           size="lg"
-                          className="w-full h-auto py-3 md:py-4 text-sm md:text-base bg-accent text-accent-foreground hover:bg-accent/90"
+                          className="w-full h-auto py-2.5 md:py-4 text-xs md:text-base bg-accent text-accent-foreground hover:bg-accent/90 leading-tight"
                           onClick={() => navigate("/")}
                         >
-                          <Phone className="w-4 h-4 md:w-5 md:h-5 mr-2 flex-shrink-0" />
-                          <span className="text-left leading-snug">
-                            L'orario che desideravi è occupato? Chiamami così da poter trovare una soluzione adatta a te!
+                          <Phone className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2 flex-shrink-0" />
+                          <span className="text-left">
+                            L'orario che desideravi è occupato? Chiamami!
                           </span>
                         </Button>
                       </div>

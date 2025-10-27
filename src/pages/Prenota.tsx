@@ -241,24 +241,24 @@ const Prenota = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 md:gap-8 overflow-x-hidden">
-            <Card className="max-w-[95vw] mx-auto">
+            <Card className="w-full">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg md:text-xl">Seleziona la data</CardTitle>
                 <CardDescription className="text-sm">Scegli il giorno che preferisci</CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-center px-2 md:px-6">
+              <CardContent className="flex justify-center px-1 md:px-6">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                   locale={it}
-                  className="rounded-md border text-[10px] md:text-sm [&_button]:h-6 [&_button]:w-6 md:[&_button]:h-9 md:[&_button]:w-9 [&_button]:text-[10px] md:[&_button]:text-sm scale-95 md:scale-100"
+                  className="rounded-md border w-full text-xs md:text-sm [&_button]:h-9 [&_button]:w-9 md:[&_button]:h-10 md:[&_button]:w-10 [&_button]:text-xs md:[&_button]:text-sm"
                 />
               </CardContent>
             </Card>
 
-            <Card className="max-w-[95vw] mx-auto">
+            <Card className="w-full">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg md:text-xl">Orari disponibili</CardTitle>
                 <CardDescription className="text-sm">
@@ -279,8 +279,8 @@ const Prenota = () => {
                   </div>
                 ) : (
                   <>
-                     <div className="max-h-[350px] md:max-h-none overflow-y-auto scrollbar-hide">
-                       <div className="grid grid-cols-3 gap-1.5 md:gap-2 max-w-[90vw] mx-auto">
+                     <div className="max-h-[400px] md:max-h-none overflow-y-auto scrollbar-hide">
+                       <div className="grid grid-cols-3 gap-2 md:gap-3 w-full">
                         {allSlots.map((slot) => (
                           <Button
                             key={slot.time}
@@ -289,8 +289,8 @@ const Prenota = () => {
                             variant="outline"
                             className={
                               slot.available
-                                ? "h-10 md:h-12 text-xs md:text-sm px-2 md:px-4 hover:bg-accent hover:text-accent-foreground"
-                                : "h-10 md:h-12 text-xs md:text-sm px-2 md:px-4 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
+                                ? "h-12 md:h-14 text-sm md:text-base px-3 md:px-4 hover:bg-accent hover:text-accent-foreground font-semibold"
+                                : "h-12 md:h-14 text-sm md:text-base px-3 md:px-4 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-semibold"
                             }
                           >
                             {slot.time}
@@ -300,13 +300,13 @@ const Prenota = () => {
                     </div>
                     
                     {hasBookedSlots && (
-                      <div className="mt-3 md:mt-6 pt-3 md:pt-6 border-t">
+                      <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t">
                         <Button
                           size="lg"
-                          className="w-full max-w-[90vw] mx-auto h-auto py-3 md:py-4 text-sm md:text-base bg-accent text-accent-foreground hover:bg-accent/90 leading-tight"
+                          className="w-full h-auto py-4 md:py-5 text-base md:text-lg bg-accent text-accent-foreground hover:bg-accent/90 leading-tight font-semibold"
                           onClick={() => navigate("/")}
                         >
-                          <Phone className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2 flex-shrink-0" />
+                          <Phone className="w-5 h-5 md:w-6 md:h-6 mr-2 flex-shrink-0" />
                           <span className="text-left">
                             L'orario che desideravi è occupato? Chiamami!
                           </span>

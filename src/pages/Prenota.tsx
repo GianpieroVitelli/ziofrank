@@ -242,7 +242,7 @@ const Prenota = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
             <Card className="w-full overflow-hidden">
-              <CardHeader className="pb-2 px-3 sm:px-4 md:px-6">
+              <CardHeader className="pb-1 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4">
                 <CardTitle className="text-base sm:text-lg md:text-xl">Seleziona la data</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Scegli il giorno che preferisci</CardDescription>
               </CardHeader>

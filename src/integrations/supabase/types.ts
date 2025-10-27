@@ -14,16 +14,202 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          client_email: string | null
+          client_name: string | null
+          client_phone: string | null
+          created_at: string
+          created_by: string
+          end_time: string
+          id: string
+          is_bonus: boolean
+          notes: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["appointment_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          created_by: string
+          end_time: string
+          id?: string
+          is_bonus?: boolean
+          notes?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string | null
+          client_phone?: string | null
+          created_at?: string
+          created_by?: string
+          end_time?: string
+          id?: string
+          is_bonus?: boolean
+          notes?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          appointment_id: string | null
+          error_message: string | null
+          id: string
+          recipient: string
+          sent_at: string
+          status: string
+          type: Database["public"]["Enums"]["email_type"]
+        }
+        Insert: {
+          appointment_id?: string | null
+          error_message?: string | null
+          id?: string
+          recipient: string
+          sent_at?: string
+          status?: string
+          type: Database["public"]["Enums"]["email_type"]
+        }
+        Update: {
+          appointment_id?: string | null
+          error_message?: string | null
+          id?: string
+          recipient?: string
+          sent_at?: string
+          status?: string
+          type?: Database["public"]["Enums"]["email_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      shop_settings: {
+        Row: {
+          address: string
+          created_at: string
+          email_bcc: string | null
+          email_from: string
+          holiday_dates: Json | null
+          id: string
+          open_hours: Json
+          phone: string
+          reminder_hour: number
+          shop_name: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string
+          created_at?: string
+          email_bcc?: string | null
+          email_from?: string
+          holiday_dates?: Json | null
+          id?: string
+          open_hours?: Json
+          phone?: string
+          reminder_hour?: number
+          shop_name?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          email_bcc?: string | null
+          email_from?: string
+          holiday_dates?: Json | null
+          id?: string
+          open_hours?: Json
+          phone?: string
+          reminder_hour?: number
+          shop_name?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "UTENTE" | "PROPRIETARIO"
+      appointment_status: "CONFIRMED" | "CANCELED"
+      email_type: "CONFIRMATION" | "REMINDER"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +336,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["UTENTE", "PROPRIETARIO"],
+      appointment_status: ["CONFIRMED", "CANCELED"],
+      email_type: ["CONFIRMATION", "REMINDER"],
+    },
   },
 } as const

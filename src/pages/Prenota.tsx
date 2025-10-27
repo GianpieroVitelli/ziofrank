@@ -280,7 +280,7 @@ const Prenota = () => {
                 ) : (
                   <>
                      <div className="max-h-[350px] md:max-h-none overflow-y-auto scrollbar-hide">
-                       <div className="grid grid-cols-4 md:grid-cols-3 gap-1 md:gap-2">
+                       <div className="grid grid-cols-3 gap-1 md:gap-2">
                         {allSlots.map((slot) => (
                           <Button
                             key={slot.time}

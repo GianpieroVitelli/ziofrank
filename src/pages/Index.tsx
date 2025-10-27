@@ -18,21 +18,12 @@ const Index = () => {
             </div>
             <h1 className="text-2xl font-bold">ZIO FRANK</h1>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={() => navigate("/prenota")} 
-              className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-            >
-              Prenota Appuntamento
-            </Button>
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate("/auth")}
-              className="text-primary-foreground hover:bg-primary-foreground/20"
-            >
-              Accedi
-            </Button>
-          </div>
+          <Button 
+            onClick={() => navigate("/prenota")} 
+            className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
+          >
+            Prenota Appuntamento
+          </Button>
         </div>
       </header>
 

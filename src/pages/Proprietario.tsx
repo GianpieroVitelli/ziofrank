@@ -9,6 +9,7 @@ import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
 import { Scissors, LogOut, Plus, Calendar as CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
+import BottomNav from "@/components/BottomNav";
 
 const Proprietario = () => {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ const Proprietario = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2">Gestione Appuntamenti</h2>
@@ -201,6 +202,8 @@ const Proprietario = () => {
           </div>
         </div>
       </main>
+
+      <BottomNav isAuthenticated={true} />
     </div>
   );
 };

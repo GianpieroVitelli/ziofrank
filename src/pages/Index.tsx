@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Scissors, Clock, MapPin, Phone, Mail } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -139,7 +140,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-primary text-primary-foreground py-8">
+      <footer className="bg-primary text-primary-foreground py-8 pb-20">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Scissors className="w-6 h-6" />
@@ -150,6 +151,8 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      <BottomNav isAuthenticated={false} />
     </div>
   );
 };

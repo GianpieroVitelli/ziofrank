@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { Scissors, LogOut, Clock } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 
 const Prenota = () => {
   const navigate = useNavigate();
@@ -223,7 +224,7 @@ const Prenota = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8 text-center">
             <h2 className="text-3xl font-bold mb-2">Prenota il tuo appuntamento</h2>
@@ -287,6 +288,8 @@ const Prenota = () => {
           </div>
         </div>
       </main>
+
+      <BottomNav isAuthenticated={true} />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
 import { Scissors, LogOut, Calendar as CalendarIcon, Clock, AlertCircle } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -125,7 +126,7 @@ const MieiAppuntamenti = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h2 className="text-3xl font-bold mb-2">I tuoi appuntamenti</h2>
@@ -214,6 +215,8 @@ const MieiAppuntamenti = () => {
           )}
         </div>
       </main>
+
+      <BottomNav isAuthenticated={true} />
 
       <AlertDialog open={cancelingId !== null} onOpenChange={() => setCancelingId(null)}>
         <AlertDialogContent>

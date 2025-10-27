@@ -213,7 +213,7 @@ const Prenota = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
         <div className="container mx-auto px-3 md:px-4 py-2 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-3">
@@ -233,14 +233,14 @@ const Prenota = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 pb-24">
+      <main className="container mx-auto px-3 md:px-4 py-4 md:py-8 pb-24 overflow-x-hidden">
         <div className="max-w-4xl mx-auto">
           <div className="mb-4 md:mb-8 text-center">
             <h2 className="text-2xl md:text-3xl font-bold mb-1 md:mb-2">Prenota il tuo appuntamento</h2>
             <p className="text-sm md:text-base text-muted-foreground">Scegli data e orario per il tuo taglio</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+          <div className="grid md:grid-cols-2 gap-4 md:gap-8 overflow-x-hidden">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg md:text-xl">Seleziona la data</CardTitle>

@@ -21,7 +21,7 @@ const BottomNav = ({ isAuthenticated = false }: BottomNavProps) => {
       label: "Prenota",
       icon: Calendar,
       path: "/prenota",
-      show: isAuthenticated,
+      show: true, // Always show - auth check will be done on the page
     },
     {
       label: "Appuntamenti",

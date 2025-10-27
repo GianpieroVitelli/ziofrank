@@ -241,31 +241,31 @@ const Prenota = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 md:gap-8 overflow-x-hidden">
-            <Card>
+            <Card className="max-w-[95vw] mx-auto">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg md:text-xl">Seleziona la data</CardTitle>
                 <CardDescription className="text-sm">Scegli il giorno che preferisci</CardDescription>
               </CardHeader>
-              <CardContent className="flex justify-center px-1 md:px-6">
+              <CardContent className="flex justify-center px-2 md:px-6">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                   locale={it}
-                  className="rounded-md border text-xs md:text-sm [&_button]:h-7 [&_button]:w-7 md:[&_button]:h-9 md:[&_button]:w-9 [&_button]:text-xs md:[&_button]:text-sm"
+                  className="rounded-md border text-[10px] md:text-sm [&_button]:h-6 [&_button]:w-6 md:[&_button]:h-9 md:[&_button]:w-9 [&_button]:text-[10px] md:[&_button]:text-sm scale-95 md:scale-100"
                 />
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="max-w-[95vw] mx-auto">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg md:text-xl">Orari disponibili</CardTitle>
                 <CardDescription className="text-sm">
                   {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy", { locale: it }) : "Seleziona una data"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="px-3 md:px-6">
+              <CardContent className="px-2 md:px-6">
                 {loading ? (
                   <div className="text-center py-8 text-muted-foreground">
                     Caricamento...
@@ -280,7 +280,7 @@ const Prenota = () => {
                 ) : (
                   <>
                      <div className="max-h-[350px] md:max-h-none overflow-y-auto scrollbar-hide">
-                       <div className="grid grid-cols-3 gap-1 md:gap-2">
+                       <div className="grid grid-cols-3 gap-1.5 md:gap-2 max-w-[90vw] mx-auto">
                         {allSlots.map((slot) => (
                           <Button
                             key={slot.time}
@@ -289,8 +289,8 @@ const Prenota = () => {
                             variant="outline"
                             className={
                               slot.available
-                                ? "h-8 md:h-12 text-[11px] md:text-sm px-1 md:px-4 hover:bg-accent hover:text-accent-foreground"
-                                : "h-8 md:h-12 text-[11px] md:text-sm px-1 md:px-4 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
+                                ? "h-10 md:h-12 text-xs md:text-sm px-2 md:px-4 hover:bg-accent hover:text-accent-foreground"
+                                : "h-10 md:h-12 text-xs md:text-sm px-2 md:px-4 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
                             }
                           >
                             {slot.time}
@@ -303,7 +303,7 @@ const Prenota = () => {
                       <div className="mt-3 md:mt-6 pt-3 md:pt-6 border-t">
                         <Button
                           size="lg"
-                          className="w-full h-auto py-2.5 md:py-4 text-xs md:text-base bg-accent text-accent-foreground hover:bg-accent/90 leading-tight"
+                          className="w-full max-w-[90vw] mx-auto h-auto py-3 md:py-4 text-sm md:text-base bg-accent text-accent-foreground hover:bg-accent/90 leading-tight"
                           onClick={() => navigate("/")}
                         >
                           <Phone className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-2 flex-shrink-0" />

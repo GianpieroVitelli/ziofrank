@@ -62,6 +62,33 @@ export type Database = {
         }
         Relationships: []
       }
+      blocks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_time: string
+          id: string
+          reason: string | null
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_time: string
+          id?: string
+          reason?: string | null
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_time?: string
+          id?: string
+          reason?: string | null
+          start_time?: string
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           appointment_id: string | null
@@ -100,6 +127,39 @@ export type Database = {
           },
         ]
       }
+      news: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_featured: boolean
+          published_at: string | null
+          status: Database["public"]["Enums"]["news_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["news_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["news_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -131,6 +191,7 @@ export type Database = {
         Row: {
           address: string
           created_at: string
+          description: string | null
           email_bcc: string | null
           email_from: string
           holiday_dates: Json | null
@@ -139,12 +200,14 @@ export type Database = {
           phone: string
           reminder_hour: number
           shop_name: string
+          social_links: Json | null
           timezone: string
           updated_at: string
         }
         Insert: {
           address?: string
           created_at?: string
+          description?: string | null
           email_bcc?: string | null
           email_from?: string
           holiday_dates?: Json | null
@@ -153,12 +216,14 @@ export type Database = {
           phone?: string
           reminder_hour?: number
           shop_name?: string
+          social_links?: Json | null
           timezone?: string
           updated_at?: string
         }
         Update: {
           address?: string
           created_at?: string
+          description?: string | null
           email_bcc?: string | null
           email_from?: string
           holiday_dates?: Json | null
@@ -167,6 +232,7 @@ export type Database = {
           phone?: string
           reminder_hour?: number
           shop_name?: string
+          social_links?: Json | null
           timezone?: string
           updated_at?: string
         }
@@ -210,6 +276,7 @@ export type Database = {
       app_role: "UTENTE" | "PROPRIETARIO"
       appointment_status: "CONFIRMED" | "CANCELED"
       email_type: "CONFIRMATION" | "REMINDER"
+      news_status: "DRAFT" | "PUBLISHED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -340,6 +407,7 @@ export const Constants = {
       app_role: ["UTENTE", "PROPRIETARIO"],
       appointment_status: ["CONFIRMED", "CANCELED"],
       email_type: ["CONFIRMATION", "REMINDER"],
+      news_status: ["DRAFT", "PUBLISHED"],
     },
   },
 } as const

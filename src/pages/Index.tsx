@@ -1,11 +1,64 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Scissors, Clock, MapPin, Phone, Mail } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Scissors, Clock, MapPin, Phone, Mail, Megaphone } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
+
+interface News {
+  id: string;
+  title: string;
+  body: string;
+  is_featured: boolean;
+  published_at: string;
+}
+
+interface ShopSettings {
+  shop_name: string;
+  description: string;
+  address: string;
+  phone: string;
+  email_from: string;
+  open_hours: any;
+}
 
 const Index = () => {
   const navigate = useNavigate();
+  const [news, setNews] = useState<News[]>([]);
+  const [settings, setSettings] = useState<ShopSettings | null>(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      // Load published news
+      const { data: newsData } = await supabase
+        .from("news")
+        .select("*")
+        .eq("status", "PUBLISHED")
+        .order("published_at", { ascending: false });
+
+      if (newsData) setNews(newsData);
+
+      // Load shop settings
+      const { data: settingsData } = await supabase
+        .from("shop_settings")
+        .select("*")
+        .single();
+
+      if (settingsData) setSettings(settingsData);
+    } catch (error) {
+      console.error("Error loading data:", error);
+    }
+  };
+
+  const featuredNews = news.find((n) => n.is_featured);
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,9 +87,9 @@ const Index = () => {
             <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
               <Scissors className="w-10 h-10 text-primary" />
             </div>
-            <h2 className="text-5xl font-bold mb-6">Benvenuto da ZIO FRANK</h2>
+            <h2 className="text-5xl font-bold mb-6">Benvenuto da {settings?.shop_name || "ZIO FRANK"}</h2>
             <p className="text-xl mb-8 text-primary-foreground/90">
-              Il tuo barbiere di fiducia a Roma. Stile, precisione e professionalità dal 1985.
+              {settings?.description || "Il tuo barbiere di fiducia a Roma. Stile, precisione e professionalità dal 1985."}
             </p>
             <Button 
               size="lg"
@@ -49,6 +102,44 @@ const Index = () => {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent"></div>
       </section>
+
+      {/* Featured News Alert */}
+      {featuredNews && (
+        <section className="container mx-auto px-4 py-8">
+          <Alert className="bg-accent/10 border-accent">
+            <Megaphone className="h-5 w-5 text-accent" />
+            <AlertDescription className="ml-2">
+              <strong>{featuredNews.title}</strong>
+              <p className="mt-1 text-sm">{featuredNews.body}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {format(new Date(featuredNews.published_at), "d MMMM yyyy", { locale: it })}
+              </p>
+            </AlertDescription>
+          </Alert>
+        </section>
+      )}
+
+      {/* News Section */}
+      {news.length > 0 && (
+        <section className="container mx-auto px-4 py-8">
+          <h2 className="text-3xl font-bold mb-6 text-center">Notizie e Avvisi</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {news.slice(0, 6).map((item) => (
+              <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
+                    {item.body}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(item.published_at), "d MMMM yyyy", { locale: it })}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Info Cards */}
       <section className="container mx-auto px-4 py-16">
@@ -74,10 +165,9 @@ const Index = () => {
               </div>
               <h3 className="text-lg font-bold mb-2">Dove Siamo</h3>
               <p className="text-sm text-muted-foreground">
-                Via Roma 1<br />
-                00100 Roma<br />
+                {settings?.address || "Via Roma 1, 00100 Roma"}<br />
                 <a 
-                  href="https://maps.google.com/?q=Via+Roma+1+Roma" 
+                  href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`}
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-accent hover:underline"
@@ -97,14 +187,14 @@ const Index = () => {
               <div className="text-sm text-muted-foreground space-y-2">
                 <p className="flex items-center gap-2">
                   <Phone className="w-4 h-4" />
-                  <a href="tel:+390612345678" className="hover:text-accent">
-                    +39 06 1234567
+                  <a href={`tel:${settings?.phone || "+390612345678"}`} className="hover:text-accent">
+                    {settings?.phone || "+39 06 1234567"}
                   </a>
                 </p>
                 <p className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
-                  <a href="mailto:info@ziofrank.it" className="hover:text-accent">
-                    info@ziofrank.it
+                  <a href={`mailto:${settings?.email_from || "info@ziofrank.it"}`} className="hover:text-accent">
+                    {settings?.email_from || "info@ziofrank.it"}
                   </a>
                 </p>
               </div>

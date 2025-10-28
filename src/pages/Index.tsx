@@ -8,7 +8,6 @@ import { Scissors, Clock, MapPin, Phone, Mail, Megaphone } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-
 interface News {
   id: string;
   title: string;
@@ -16,7 +15,6 @@ interface News {
   is_featured: boolean;
   published_at: string;
 }
-
 interface ShopSettings {
   shop_name: string;
   description: string;
@@ -25,43 +23,34 @@ interface ShopSettings {
   email_from: string;
   open_hours: any;
 }
-
 const Index = () => {
   const navigate = useNavigate();
   const [news, setNews] = useState<News[]>([]);
   const [settings, setSettings] = useState<ShopSettings | null>(null);
-
   useEffect(() => {
     loadData();
   }, []);
-
   const loadData = async () => {
     try {
       // Load published news
-      const { data: newsData } = await supabase
-        .from("news")
-        .select("*")
-        .eq("status", "PUBLISHED")
-        .order("published_at", { ascending: false });
-
+      const {
+        data: newsData
+      } = await supabase.from("news").select("*").eq("status", "PUBLISHED").order("published_at", {
+        ascending: false
+      });
       if (newsData) setNews(newsData);
 
       // Load shop settings
-      const { data: settingsData } = await supabase
-        .from("shop_settings")
-        .select("*")
-        .single();
-
+      const {
+        data: settingsData
+      } = await supabase.from("shop_settings").select("*").single();
       if (settingsData) setSettings(settingsData);
     } catch (error) {
       console.error("Error loading data:", error);
     }
   };
-
-  const featuredNews = news.find((n) => n.is_featured);
-
-  return (
-    <div className="min-h-screen bg-background">
+  const featuredNews = news.find(n => n.is_featured);
+  return <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -71,10 +60,7 @@ const Index = () => {
             </div>
             <h1 className="text-2xl font-bold">ZIO FRANK</h1>
           </div>
-          <Button 
-            onClick={() => navigate("/prenota")} 
-            className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-          >
+          <Button onClick={() => navigate("/prenota")} className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
             Prenota Appuntamento
           </Button>
         </div>
@@ -82,7 +68,7 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-b from-primary to-primary/80 text-primary-foreground">
-        <div className="container mx-auto px-4 py-24 text-center">
+        <div className="container mx-auto px-4 text-center py-[60px]">
           <div className="max-w-3xl mx-auto">
             <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
               <Scissors className="w-10 h-10 text-primary" />
@@ -91,11 +77,7 @@ const Index = () => {
             <p className="text-xl mb-8 text-primary-foreground/90">
               {settings?.description || "Il tuo barbiere di fiducia a Roma. Stile, precisione e professionalità dal 1985."}
             </p>
-            <Button 
-              size="lg"
-              onClick={() => navigate("/prenota")}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg px-8 py-6 h-auto font-bold"
-            >
+            <Button size="lg" onClick={() => navigate("/prenota")} className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg px-8 py-6 h-auto font-bold">
               Prenota il tuo appuntamento
             </Button>
           </div>
@@ -104,42 +86,40 @@ const Index = () => {
       </section>
 
       {/* Featured News Alert */}
-      {featuredNews && (
-        <section className="container mx-auto px-4 py-8">
+      {featuredNews && <section className="container mx-auto px-4 py-8">
           <Alert className="bg-accent/10 border-accent">
             <Megaphone className="h-5 w-5 text-accent" />
             <AlertDescription className="ml-2">
               <strong>{featuredNews.title}</strong>
               <p className="mt-1 text-sm">{featuredNews.body}</p>
               <p className="text-xs text-muted-foreground mt-2">
-                {format(new Date(featuredNews.published_at), "d MMMM yyyy", { locale: it })}
+                {format(new Date(featuredNews.published_at), "d MMMM yyyy", {
+              locale: it
+            })}
               </p>
             </AlertDescription>
           </Alert>
-        </section>
-      )}
+        </section>}
 
       {/* News Section */}
-      {news.length > 0 && (
-        <section className="container mx-auto px-4 py-8">
+      {news.length > 0 && <section className="container mx-auto px-4 py-8">
           <h2 className="text-3xl font-bold mb-6 text-center">Notizie e Avvisi</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {news.slice(0, 6).map((item) => (
-              <Card key={item.id} className="hover:shadow-lg transition-shadow">
+            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow">
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-bold mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
                     {item.body}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {format(new Date(item.published_at), "d MMMM yyyy", { locale: it })}
+                    {format(new Date(item.published_at), "d MMMM yyyy", {
+                locale: it
+              })}
                   </p>
                 </CardContent>
-              </Card>
-            ))}
+              </Card>)}
           </div>
-        </section>
-      )}
+        </section>}
 
       {/* Info Cards */}
       <section className="container mx-auto px-4 py-16">
@@ -166,12 +146,7 @@ const Index = () => {
               <h3 className="text-lg font-bold mb-2">Dove Siamo</h3>
               <p className="text-sm text-muted-foreground">
                 {settings?.address || "Via Roma 1, 00100 Roma"}<br />
-                <a 
-                  href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-accent hover:underline"
-                >
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
                   Vedi sulla mappa →
                 </a>
               </p>
@@ -210,11 +185,7 @@ const Index = () => {
           <p className="text-muted-foreground mb-6">
             Prenota il tuo appuntamento in pochi click. Semplice, veloce, garantito.
           </p>
-          <Button 
-            size="lg"
-            onClick={() => navigate("/prenota")}
-            className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold"
-          >
+          <Button size="lg" onClick={() => navigate("/prenota")} className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold">
             Prenota ora
           </Button>
         </div>
@@ -234,8 +205,6 @@ const Index = () => {
       </footer>
 
       <BottomNav isAuthenticated={false} />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;

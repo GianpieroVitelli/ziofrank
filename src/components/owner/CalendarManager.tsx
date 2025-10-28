@@ -200,36 +200,40 @@ export const CalendarManager = () => {
 
   return (
     <>
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-4 lg:gap-8">
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Calendario</CardTitle>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              locale={it}
-              className="rounded-md border"
-            />
+          <CardContent className="flex justify-center overflow-x-auto">
+            <div className="min-w-[280px]">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                locale={it}
+                className="rounded-md border"
+              />
+            </div>
           </CardContent>
         </Card>
 
         <Card className="lg:col-span-2">
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5" />
-                {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy", { locale: it }) : "Seleziona una data"}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="line-clamp-2">
+                  {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy", { locale: it }) : "Seleziona una data"}
+                </span>
               </CardTitle>
-              <Button onClick={openNewDialog}>
+              <Button onClick={openNewDialog} className="w-full sm:w-auto flex-shrink-0">
                 <Plus className="w-4 h-4 mr-2" />
-                Nuovo Appuntamento
+                Nuovo
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-hidden">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">Caricamento...</div>
             ) : appointments.length === 0 ? (
@@ -244,7 +248,7 @@ export const CalendarManager = () => {
                   return (
                     <div
                       key={apt.id}
-                      className={`p-4 rounded-lg border ${
+                      className={`p-3 sm:p-4 rounded-lg border ${
                         apt.is_bonus
                           ? "bg-accent/10 border-accent"
                           : apt.status === "CANCELED"
@@ -252,26 +256,26 @@ export const CalendarManager = () => {
                           : "bg-card"
                       }`}
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm sm:text-base break-words">
                               {format(startTime, "HH:mm")} - {apt.client_name || "Cliente walk-in"}
                             </p>
-                            {apt.is_bonus && <Star className="w-4 h-4 text-accent" fill="currentColor" />}
+                            {apt.is_bonus && <Star className="w-4 h-4 text-accent flex-shrink-0" fill="currentColor" />}
                           </div>
                           {apt.client_email && (
-                            <p className="text-sm text-muted-foreground">{apt.client_email}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground break-all">{apt.client_email}</p>
                           )}
                           {apt.client_phone && (
-                            <p className="text-sm text-muted-foreground">{apt.client_phone}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">{apt.client_phone}</p>
                           )}
                           {apt.notes && (
-                            <p className="text-sm text-muted-foreground mt-1 italic">{apt.notes}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground mt-1 italic break-words">{apt.notes}</p>
                           )}
                         </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" onClick={() => openEditDialog(apt)}>
+                        <div className="flex gap-2 flex-wrap sm:flex-nowrap flex-shrink-0">
+                          <Button size="sm" variant="outline" onClick={() => openEditDialog(apt)} className="flex-1 sm:flex-none">
                             <Edit className="w-4 h-4" />
                           </Button>
                           {apt.status !== "CANCELED" && (
@@ -279,6 +283,7 @@ export const CalendarManager = () => {
                               size="sm"
                               variant="outline"
                               onClick={() => handleCancel(apt.id)}
+                              className="flex-1 sm:flex-none text-xs sm:text-sm"
                             >
                               Annulla
                             </Button>
@@ -287,6 +292,7 @@ export const CalendarManager = () => {
                             size="sm"
                             variant="destructive"
                             onClick={() => handleDelete(apt.id)}
+                            className="flex-1 sm:flex-none"
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -302,14 +308,14 @@ export const CalendarManager = () => {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingAppointment ? "Modifica Appuntamento" : "Nuovo Appuntamento"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date">Data</Label>
                 <Input
@@ -341,7 +347,7 @@ export const CalendarManager = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="client_email">Email</Label>
                 <Input

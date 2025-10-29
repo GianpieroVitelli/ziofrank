@@ -27,9 +27,28 @@ const Index = () => {
   const navigate = useNavigate();
   const [news, setNews] = useState<News[]>([]);
   const [settings, setSettings] = useState<ShopSettings | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
     loadData();
+    checkUserRole();
   }, []);
+
+  const checkUserRole = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setIsAuthenticated(true);
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", session.user.id);
+      
+      if (roles && roles.some(r => r.role === "PROPRIETARIO")) {
+        setIsOwner(true);
+      }
+    }
+  };
   const loadData = async () => {
     try {
       // Load published news
@@ -189,7 +208,7 @@ const Index = () => {
         </div>
       </footer>
 
-      <BottomNav isAuthenticated={false} />
+      <BottomNav isAuthenticated={isAuthenticated} isOwner={isOwner} />
     </div>;
 };
 export default Index;

@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 
 interface BottomNavProps {
   isAuthenticated?: boolean;
+  isOwner?: boolean;
 }
 
-const BottomNav = ({ isAuthenticated = false }: BottomNavProps) => {
+const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,16 +19,16 @@ const BottomNav = ({ isAuthenticated = false }: BottomNavProps) => {
       show: true,
     },
     {
-      label: "Prenota",
+      label: isOwner ? "Menù" : "Prenota",
       icon: Calendar,
-      path: "/prenota",
-      show: true, // Always show - auth check will be done on the page
+      path: isOwner ? "/proprietario" : "/prenota",
+      show: true,
     },
     {
       label: "Appuntamenti",
       icon: Clock,
       path: "/miei-appuntamenti",
-      show: isAuthenticated,
+      show: isAuthenticated && !isOwner,
     },
     {
       label: "Accedi",

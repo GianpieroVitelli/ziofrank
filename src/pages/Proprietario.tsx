@@ -9,10 +9,11 @@ import BottomNav from "@/components/BottomNav";
 import { CalendarManager } from "@/components/owner/CalendarManager";
 import { ShopSettingsEditor } from "@/components/owner/ShopSettingsEditor";
 import { NewsManager } from "@/components/owner/NewsManager";
+import { AppointmentsList } from "@/components/owner/AppointmentsList";
 const Proprietario = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news">("dashboard");
+  const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news" | "appointments">("dashboard");
   useEffect(() => {
     const checkAuth = async () => {
       const {
@@ -74,7 +75,20 @@ const Proprietario = () => {
                 <p className="text-muted-foreground">Gestisci il tuo negozio</p>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("appointments")}>
+                  <CardHeader>
+                    <CalendarDays className="w-12 h-12 mb-4 text-primary" />
+                    <CardTitle>Appuntamenti</CardTitle>
+                    <CardDescription>
+                      Visualizza tutti gli appuntamenti prenotati in ordine cronologico.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full">Vedi Appuntamenti</Button>
+                  </CardContent>
+                </Card>
+
                 <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("calendar")}>
                   <CardHeader>
                     <CalendarDays className="w-12 h-12 mb-4 text-primary" />
@@ -125,10 +139,19 @@ const Proprietario = () => {
               </div>
               <ShopSettingsEditor />
             </>}
+
+          {activeView === "appointments" && <>
+              <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
+                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm">← Torna
+            </Button>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Tutti gli Appuntamenti</h2>
+              </div>
+              <AppointmentsList />
+            </>}
         </div>
       </main>
 
-      <BottomNav isAuthenticated={true} />
+      <BottomNav isAuthenticated={true} isOwner={true} />
     </div>;
 };
 export default Proprietario;

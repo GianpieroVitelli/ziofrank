@@ -20,6 +20,7 @@ const Prenota = () => {
   }[]>([]);
   const [hasBookedSlots, setHasBookedSlots] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
   const timezone = "Europe/Rome";
   useEffect(() => {
@@ -131,10 +132,15 @@ const Prenota = () => {
       setLoading(false);
     }
   };
-  const handleBooking = async (slot: string) => {
-    if (!selectedDate || !user) return;
-    setBookingSlot(slot);
+  const handleSlotSelection = (slot: string) => {
+    setSelectedSlot(slot);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedSlot || !selectedDate || !user) return;
+    setBookingSlot(selectedSlot);
     try {
+      const slot = selectedSlot;
       const [hour, minute] = slot.split(":").map(Number);
       const zonedDate = toZonedTime(selectedDate, timezone);
       zonedDate.setHours(hour, minute, 0, 0);
@@ -199,6 +205,7 @@ const Prenota = () => {
       toast.error(error.message || "Errore durante la prenotazione");
     } finally {
       setBookingSlot(null);
+      setSelectedSlot(null);
     }
   };
   const handleLogout = async () => {
@@ -266,11 +273,30 @@ const Prenota = () => {
                   </div> : <>
                     <div className="max-h-[350px] sm:max-h-[400px] md:max-h-none overflow-y-auto scrollbar-hide">
                       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full">
-                        {allSlots.map(slot => <Button key={slot.time} onClick={() => slot.available && handleBooking(slot.time)} disabled={!slot.available || bookingSlot !== null} variant="outline" className={slot.available ? "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 hover:bg-accent hover:text-accent-foreground font-medium whitespace-nowrap" : "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-medium whitespace-nowrap"}>
+                        {allSlots.map(slot => <Button key={slot.time} onClick={() => slot.available && handleSlotSelection(slot.time)} disabled={!slot.available || bookingSlot !== null} variant="outline" className={
+                            slot.available && selectedSlot === slot.time
+                              ? "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-600 font-medium whitespace-nowrap"
+                              : slot.available
+                              ? "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 hover:bg-accent hover:text-accent-foreground font-medium whitespace-nowrap"
+                              : "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-medium whitespace-nowrap"
+                          }>
                             {slot.time}
                           </Button>)}
                       </div>
                     </div>
+                    
+                    {selectedSlot && (
+                      <div className="mt-3 sm:mt-4 md:mt-6">
+                        <Button
+                          size="lg"
+                          onClick={handleConfirmBooking}
+                          disabled={bookingSlot !== null}
+                          className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-5 text-sm sm:text-base md:text-lg lg:text-xl px-3 sm:px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold"
+                        >
+                          {bookingSlot ? "Prenotazione in corso..." : "Conferma Prenotazione"}
+                        </Button>
+                      </div>
+                    )}
                     
                     <div className="mt-3 sm:mt-4 md:mt-6 pt-3 sm:pt-4 md:pt-6 border-t">
                       <Button size="lg" className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-5 text-xs sm:text-sm md:text-base lg:text-lg px-3 sm:px-4 bg-accent text-accent-foreground hover:bg-accent/90 leading-snug font-semibold" onClick={() => navigate("/#contatti")}>

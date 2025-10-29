@@ -27,9 +27,23 @@ const Index = () => {
   const navigate = useNavigate();
   const [news, setNews] = useState<News[]>([]);
   const [settings, setSettings] = useState<ShopSettings | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
     loadData();
+    checkAuth();
   }, []);
+
+  const checkAuth = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setIsAuthenticated(!!session);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  };
   const loadData = async () => {
     try {
       // Load published news
@@ -231,7 +245,7 @@ const Index = () => {
         </div>
       </footer>
 
-      <BottomNav isAuthenticated={false} />
+      <BottomNav isAuthenticated={isAuthenticated} />
     </div>;
 };
 export default Index;

@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       try {
         const emailResponse = await resend.emails.send({
-          from: `${shopName} <onboarding@resend.dev>`,
+          from: `${shopName} <${emailFrom}>`,
           to: [clientEmail],
           subject: `Promemoria - Appuntamento da ${shopName} oggi alle ${timeStr}`,
           html: `

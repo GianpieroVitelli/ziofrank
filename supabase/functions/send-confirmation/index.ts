@@ -125,7 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to client (and BCC to shop)
     const emailResponse = await resend.emails.send({
-      from: `${shopName} <onboarding@resend.dev>`,
+      from: `${shopName} <${emailFrom}>`,
       to: [clientEmail],
       bcc: emailBcc ? [emailBcc] : undefined,
       subject: `${shopName} - Prenotazione confermata`,

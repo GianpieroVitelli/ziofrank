@@ -128,7 +128,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send cancellation email
     const emailResponse = await resend.emails.send({
-      from: `${shopName} <onboarding@resend.dev>`,
+      from: `${shopName} <${emailFrom}>`,
       to: [clientEmail],
       bcc: emailBcc ? [emailBcc] : undefined,
       subject: `${shopName} - Prenotazione cancellata`,

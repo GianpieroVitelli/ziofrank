@@ -253,7 +253,7 @@ const Prenota = () => {
                     </div>
                     
                     <div className="mt-3 sm:mt-4 md:mt-6 pt-3 sm:pt-4 md:pt-6 border-t">
-                      <Button size="lg" className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-5 text-xs sm:text-sm md:text-base lg:text-lg px-3 sm:px-4 bg-accent text-accent-foreground hover:bg-accent/90 leading-snug font-semibold" onClick={() => navigate("/")}>
+                      <Button size="lg" className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-5 text-xs sm:text-sm md:text-base lg:text-lg px-3 sm:px-4 bg-accent text-accent-foreground hover:bg-accent/90 leading-snug font-semibold" onClick={() => navigate("/#contatti")}>
                         <Phone className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 flex-shrink-0" />
                         <span className="text-left break-words">
                           L'orario che desideravi è occupato? Chiamami!

@@ -33,6 +33,13 @@ const Index = () => {
   useEffect(() => {
     loadData();
     checkUserRole();
+    
+    // Scroll to section if hash is present
+    if (window.location.hash === '#contatti') {
+      setTimeout(() => {
+        document.getElementById('contatti')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   }, []);
 
   const checkUserRole = async () => {
@@ -126,7 +133,7 @@ const Index = () => {
         </section>}
 
       {/* Info Cards */}
-      <section className="container mx-auto px-4 py-16">
+      <section id="contatti" className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">

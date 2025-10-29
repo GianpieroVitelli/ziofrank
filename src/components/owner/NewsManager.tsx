@@ -204,31 +204,42 @@ export const NewsManager = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 min-w-[140px]">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handlePublishToggle(item)}
+                        className="w-full justify-center gap-2"
                       >
                         {item.status === "PUBLISHED" ? (
-                          <EyeOff className="w-4 h-4" />
+                          <>
+                            <EyeOff className="w-4 h-4" />
+                            <span>Nascondi</span>
+                          </>
                         ) : (
-                          <Eye className="w-4 h-4" />
+                          <>
+                            <Eye className="w-4 h-4" />
+                            <span>Pubblica</span>
+                          </>
                         )}
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => openEditDialog(item)}
+                        className="w-full justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
+                        <span>Modifica</span>
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDelete(item.id)}
+                        className="w-full justify-center gap-2"
                       >
                         <Trash2 className="w-4 h-4" />
+                        <span>Elimina</span>
                       </Button>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -12,9 +13,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface ConfirmationRequest {
-  appointment_id: string;
-}
+const requestSchema = z.object({
+  appointment_id: z.string().uuid("Invalid appointment ID format"),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -22,8 +23,41 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Validate input
+    const body = await req.json();
+    const validationResult = requestSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input", details: validationResult.error.issues }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    const { appointment_id } = validationResult.data;
+    
+    // Get authenticated user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
-    const { appointment_id }: ConfirmationRequest = await req.json();
+    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     // Get appointment details
     const { data: appointment, error: aptError } = await supabase
@@ -34,7 +68,26 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (aptError || !appointment) {
       console.error("Appointment not found:", aptError);
-      throw new Error("Appuntamento non trovato");
+      return new Response(
+        JSON.stringify({ error: "Appuntamento non trovato" }),
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+    
+    // Verify authorization: user owns the appointment OR user is owner (PROPRIETARIO role)
+    const { data: userRoles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    
+    const isOwner = userRoles?.some(r => r.role === "PROPRIETARIO");
+    const ownsAppointment = appointment.user_id === user.id;
+    
+    if (!isOwner && !ownsAppointment) {
+      return new Response(
+        JSON.stringify({ error: "Non autorizzato ad accedere a questo appuntamento" }),
+        { status: 403, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     // Get shop settings

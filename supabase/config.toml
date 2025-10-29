@@ -1,10 +1,4 @@
 project_id = "mebkikuipavdlvkbfull"
 
-[functions.send-confirmation]
-verify_jwt = false
-
-[functions.send-cancellation]
-verify_jwt = false
-
 [functions.send-daily-reminders]
 verify_jwt = false

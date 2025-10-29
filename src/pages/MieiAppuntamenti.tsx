@@ -79,6 +79,19 @@ const MieiAppuntamenti = () => {
 
       if (error) throw error;
 
+      // Send cancellation email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-cancellation', {
+          body: { appointment_id: appointmentId }
+        });
+        
+        if (emailError) {
+          console.error("Failed to send cancellation email:", emailError);
+        }
+      } catch (emailError) {
+        console.error("Error sending cancellation email:", emailError);
+      }
+
       toast.success("Appuntamento cancellato con successo");
       if (user) {
         loadAppointments(user.id);

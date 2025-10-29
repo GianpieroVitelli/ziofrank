@@ -107,10 +107,29 @@ export const CalendarManager = () => {
         if (error) throw error;
         toast.success("Appuntamento aggiornato");
       } else {
-        const { error } = await supabase.from("appointments").insert(appointmentData);
+        const { data: newAppointment, error } = await supabase
+          .from("appointments")
+          .insert(appointmentData)
+          .select()
+          .single();
 
         if (error) throw error;
         toast.success("Appuntamento creato");
+
+        // Send confirmation email if client email is provided
+        if (formData.client_email && newAppointment) {
+          try {
+            const { error: emailError } = await supabase.functions.invoke('send-confirmation', {
+              body: { appointment_id: newAppointment.id }
+            });
+            
+            if (emailError) {
+              console.error("Failed to send confirmation email:", emailError);
+            }
+          } catch (emailError) {
+            console.error("Error sending confirmation email:", emailError);
+          }
+        }
       }
 
       setDialogOpen(false);
@@ -133,6 +152,20 @@ export const CalendarManager = () => {
         .eq("id", id);
 
       if (error) throw error;
+
+      // Send cancellation email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-cancellation', {
+          body: { appointment_id: id }
+        });
+        
+        if (emailError) {
+          console.error("Failed to send cancellation email:", emailError);
+        }
+      } catch (emailError) {
+        console.error("Error sending cancellation email:", emailError);
+      }
+
       toast.success("Appuntamento annullato");
       if (selectedDate) loadAppointments(selectedDate);
     } catch (error: any) {

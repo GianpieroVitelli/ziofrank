@@ -158,21 +158,41 @@ const Prenota = () => {
       } = await supabase.from("profiles").select("name, email, phone").eq("id", user.id).single();
 
       // Create appointment
-      const {
-        error
-      } = await supabase.from("appointments").insert({
-        user_id: user.id,
-        client_name: profile?.name || user.email,
-        client_email: profile?.email || user.email,
-        client_phone: profile?.phone,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        is_bonus: false,
-        status: "CONFIRMED",
-        created_by: "USER"
-      });
+      const { data: newAppointment, error } = await supabase
+        .from("appointments")
+        .insert({
+          user_id: user.id,
+          client_name: profile?.name || user.email,
+          client_email: profile?.email || user.email,
+          client_phone: profile?.phone,
+          start_time: startTime.toISOString(),
+          end_time: endTime.toISOString(),
+          is_bonus: false,
+          status: "CONFIRMED",
+          created_by: "USER"
+        })
+        .select()
+        .single();
+
       if (error) throw error;
-      toast.success("Prenotazione effettuata con successo!");
+
+      // Send confirmation email
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-confirmation', {
+          body: { appointment_id: newAppointment.id }
+        });
+        
+        if (emailError) {
+          console.error("Failed to send confirmation email:", emailError);
+          toast.success("Prenotazione effettuata! Email di conferma non inviata.");
+        } else {
+          toast.success("Prenotazione effettuata con successo!");
+        }
+      } catch (emailError) {
+        console.error("Error sending confirmation email:", emailError);
+        toast.success("Prenotazione effettuata! Email di conferma non inviata.");
+      }
+
       navigate("/miei-appuntamenti");
     } catch (error: any) {
       console.error("Booking error:", error);

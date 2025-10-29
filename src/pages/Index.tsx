@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Scissors, Clock, MapPin, Phone, Mail, Megaphone } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -84,6 +84,33 @@ const Index = () => {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent"></div>
       </section>
+
+      {/* Avvisi alla clientela */}
+      {news.length > 0 && (
+        <section className="container mx-auto px-4 py-8">
+          <Card className="max-w-4xl mx-auto border-accent/50 shadow-lg">
+            <CardHeader className="bg-accent/5">
+              <CardTitle className="text-2xl flex items-center gap-2">
+                <Megaphone className="w-6 h-6 text-accent" />
+                Avvisi alla clientela
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {news.slice(0, 3).map((item) => (
+                  <div key={item.id} className="pb-4 border-b last:border-b-0 last:pb-0">
+                    <h3 className="font-bold text-lg mb-2">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2">{item.body}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(item.published_at), "d MMMM yyyy", { locale: it })}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {/* Featured News Alert */}
       {featuredNews && <section className="container mx-auto px-4 py-8">

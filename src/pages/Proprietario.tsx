@@ -9,54 +9,50 @@ import BottomNav from "@/components/BottomNav";
 import { CalendarManager } from "@/components/owner/CalendarManager";
 import { ShopSettingsEditor } from "@/components/owner/ShopSettingsEditor";
 import { NewsManager } from "@/components/owner/NewsManager";
-
 const Proprietario = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news">("dashboard");
-
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: {
+          session
+        }
+      } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
         return;
       }
 
       // Check if user is owner
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id);
-
+      const {
+        data: roles
+      } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
       if (!roles || !roles.some(r => r.role === "PROPRIETARIO")) {
         navigate("/prenota");
         return;
       }
-
       setUser(session.user);
     };
     checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
-
   if (!user) return null;
-
-  return (
-    <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
+  return <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
       <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -72,8 +68,7 @@ const Proprietario = () => {
 
       <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-7xl mx-auto">
-          {activeView === "dashboard" && (
-            <>
+          {activeView === "dashboard" && <>
               <div className="mb-8">
                 <h2 className="text-3xl font-bold mb-2">Dashboard Proprietario</h2>
                 <p className="text-muted-foreground">Gestisci il tuo negozio</p>
@@ -110,48 +105,30 @@ const Proprietario = () => {
               <div className="mt-8">
                 <NewsManager />
               </div>
-            </>
-          )}
+            </>}
 
-          {activeView === "calendar" && (
-            <>
+          {activeView === "calendar" && <>
               <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setActiveView("dashboard")}
-                  className="text-xs md:text-sm"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm">
                   ← Torna
                 </Button>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Calendario Prenotazioni</h2>
               </div>
               <CalendarManager />
-            </>
-          )}
+            </>}
 
-          {activeView === "settings" && (
-            <>
+          {activeView === "settings" && <>
               <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setActiveView("dashboard")}
-                  className="text-xs md:text-sm"
-                >
-                  ← Torna
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm">← Torna al menù
+            </Button>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Impostazioni Negozio</h2>
               </div>
               <ShopSettingsEditor />
-            </>
-          )}
+            </>}
         </div>
       </main>
 
       <BottomNav isAuthenticated={true} />
-    </div>
-  );
+    </div>;
 };
-
 export default Proprietario;

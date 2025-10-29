@@ -203,6 +203,7 @@ export type Database = {
           social_links: Json | null
           timezone: string
           updated_at: string
+          website_url: string
         }
         Insert: {
           address?: string
@@ -219,6 +220,7 @@ export type Database = {
           social_links?: Json | null
           timezone?: string
           updated_at?: string
+          website_url?: string
         }
         Update: {
           address?: string
@@ -235,6 +237,7 @@ export type Database = {
           social_links?: Json | null
           timezone?: string
           updated_at?: string
+          website_url?: string
         }
         Relationships: []
       }

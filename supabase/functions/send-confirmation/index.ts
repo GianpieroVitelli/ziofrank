@@ -48,6 +48,7 @@ const handler = async (req: Request): Promise<Response> => {
     const shopPhone = settings?.phone || "+39 06 1234567";
     const emailFrom = settings?.email_from || "info@ziofrank.it";
     const emailBcc = settings?.email_bcc;
+    const websiteUrl = settings?.website_url || "https://tuosito.it";
 
     // Format date and time
     const startTime = new Date(appointment.start_time);
@@ -90,6 +91,11 @@ const handler = async (req: Request): Promise<Response> => {
 
           <p><strong>Hai bisogno di modificare l'appuntamento?</strong></p>
           <p>Puoi annullare la tua prenotazione dalla pagina "I Miei Appuntamenti" sul nostro sito.</p>
+          
+          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; color: #333;">Per effettuare una prenotazione o modificarne una già esistente accedi alla piattaforma dal seguente link:</p>
+            <p style="margin: 10px 0 0 0;"><a href="${websiteUrl}" style="color: #2563eb; font-weight: bold;">${websiteUrl}</a></p>
+          </div>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 14px;">

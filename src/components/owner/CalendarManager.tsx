@@ -309,12 +309,12 @@ export const CalendarManager = () => {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto overflow-x-hidden w-full">
-          <DialogHeader>
-            <DialogTitle>
+          <DialogHeader className="text-center">
+            <DialogTitle className="text-center">
               {editingAppointment ? "Modifica Appuntamento" : "Nuovo Appuntamento"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 px-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date">Data</Label>

@@ -28,11 +28,12 @@ const handler = async (req: Request): Promise<Response> => {
     // Get appointment details
     const { data: appointment, error: aptError } = await supabase
       .from("appointments")
-      .select("*, profiles(name, email)")
+      .select("*")
       .eq("id", appointment_id)
       .single();
 
     if (aptError || !appointment) {
+      console.error("Appointment not found:", aptError);
       throw new Error("Appuntamento non trovato");
     }
 
@@ -61,8 +62,8 @@ const handler = async (req: Request): Promise<Response> => {
       minute: "2-digit",
     });
 
-    const clientEmail = appointment.client_email || appointment.profiles?.email;
-    const clientName = appointment.client_name || appointment.profiles?.name || "Cliente";
+    const clientEmail = appointment.client_email;
+    const clientName = appointment.client_name || "Cliente";
 
     if (!clientEmail) {
       throw new Error("Email del cliente non disponibile");

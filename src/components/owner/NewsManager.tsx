@@ -176,13 +176,13 @@ export const NewsManager = () => {
                     item.is_featured ? "bg-accent/10 border-accent" : "bg-card"
                   }`}
                 >
-                  <div className="flex justify-between items-start gap-4">
-                    <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                    <div className="flex-1 w-full">
                       <h3 className="font-semibold text-lg">{item.title}</h3>
                       <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                         {item.body}
                       </p>
-                      <div className="flex gap-2 mt-2">
+                      <div className="flex flex-wrap gap-2 mt-2">
                         <span
                           className={`text-xs px-2 py-1 rounded-full ${
                             item.status === "PUBLISHED"
@@ -204,22 +204,22 @@ export const NewsManager = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2 min-w-[140px]">
+                    <div className="flex sm:flex-col gap-2 w-full sm:w-auto sm:min-w-[140px]">
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => handlePublishToggle(item)}
-                        className="w-full justify-center gap-2"
+                        className="flex-1 sm:w-full justify-center gap-2"
                       >
                         {item.status === "PUBLISHED" ? (
                           <>
                             <EyeOff className="w-4 h-4" />
-                            <span>Nascondi</span>
+                            <span className="hidden sm:inline">Nascondi</span>
                           </>
                         ) : (
                           <>
                             <Eye className="w-4 h-4" />
-                            <span>Pubblica</span>
+                            <span className="hidden sm:inline">Pubblica</span>
                           </>
                         )}
                       </Button>
@@ -227,19 +227,19 @@ export const NewsManager = () => {
                         size="sm"
                         variant="outline"
                         onClick={() => openEditDialog(item)}
-                        className="w-full justify-center gap-2"
+                        className="flex-1 sm:w-full justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
-                        <span>Modifica</span>
+                        <span className="hidden sm:inline">Modifica</span>
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => handleDelete(item.id)}
-                        className="w-full justify-center gap-2"
+                        className="flex-1 sm:w-full justify-center gap-2"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span>Elimina</span>
+                        <span className="hidden sm:inline">Elimina</span>
                       </Button>
                     </div>
                   </div>

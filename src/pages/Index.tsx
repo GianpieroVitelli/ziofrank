@@ -135,41 +135,6 @@ const Index = () => {
         </Card>
       </section>
 
-      {/* Featured News Alert - mantenuto per retrocompatibilità */}
-      {featuredNews && <section className="container mx-auto px-4 py-8">
-          <Alert className="bg-accent/10 border-accent">
-            <Megaphone className="h-5 w-5 text-accent" />
-            <AlertDescription className="ml-2">
-              <strong>{featuredNews.title}</strong>
-              <p className="mt-1 text-sm">{featuredNews.body}</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                {format(new Date(featuredNews.published_at), "d MMMM yyyy", {
-              locale: it
-            })}
-              </p>
-            </AlertDescription>
-          </Alert>
-        </section>}
-
-      {/* News Section */}
-      {news.length > 0 && <section className="container mx-auto px-4 py-8">
-          <h2 className="text-3xl font-bold mb-6 text-center">Notizie e Avvisi</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
-                    {item.body}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(item.published_at), "d MMMM yyyy", {
-                locale: it
-              })}
-                  </p>
-                </CardContent>
-              </Card>)}
-          </div>
-        </section>}
 
       {/* Info Cards */}
       <section className="container mx-auto px-4 py-16">

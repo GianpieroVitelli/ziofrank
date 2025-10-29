@@ -90,7 +90,7 @@ const Index = () => {
       {news.length > 0 && <section className="container mx-auto px-4 py-[8px]">
           <h2 className="text-3xl font-bold mb-6 text-center">Notizie e Avvisi</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow bg-accent/8">
+            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow bg-accent/15 border-accent/20">
                 <CardContent className="pt-6">
                   <h3 className="text-lg font-bold mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-3">

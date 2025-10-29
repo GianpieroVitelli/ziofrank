@@ -115,11 +115,16 @@ const Proprietario = () => {
 
           {activeView === "calendar" && (
             <>
-              <div className="mb-6 flex items-center gap-4">
-                <Button variant="outline" onClick={() => setActiveView("dashboard")}>
-                  ← Torna alla Dashboard
+              <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setActiveView("dashboard")}
+                  className="text-xs md:text-sm"
+                >
+                  ← Torna
                 </Button>
-                <h2 className="text-3xl font-bold">Calendario Prenotazioni</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Calendario Prenotazioni</h2>
               </div>
               <CalendarManager />
             </>
@@ -127,11 +132,16 @@ const Proprietario = () => {
 
           {activeView === "settings" && (
             <>
-              <div className="mb-6 flex items-center gap-4">
-                <Button variant="outline" onClick={() => setActiveView("dashboard")}>
-                  ← Torna alla Dashboard
+              <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setActiveView("dashboard")}
+                  className="text-xs md:text-sm"
+                >
+                  ← Torna
                 </Button>
-                <h2 className="text-3xl font-bold">Impostazioni Negozio</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Impostazioni Negozio</h2>
               </div>
               <ShopSettingsEditor />
             </>

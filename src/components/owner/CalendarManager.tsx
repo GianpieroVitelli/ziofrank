@@ -314,7 +314,7 @@ export const CalendarManager = () => {
               {editingAppointment ? "Modifica Appuntamento" : "Nuovo Appuntamento"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 px-2">
+          <div className="space-y-4 px-2 max-w-md mx-auto w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date">Data</Label>

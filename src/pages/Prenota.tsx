@@ -186,7 +186,7 @@ const Prenota = () => {
     navigate("/");
   };
   if (!user) return null;
-  return <div className="min-h-screen bg-background overflow-x-hidden">
+  return <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
       <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
         <div className="container mx-auto px-3 md:px-4 py-2 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-3">

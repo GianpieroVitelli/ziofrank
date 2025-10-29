@@ -100,33 +100,42 @@ const Index = () => {
       </section>
 
       {/* Avvisi alla clientela */}
-      {news.length > 0 && (
-        <section className="container mx-auto px-4 py-8">
-          <Card className="max-w-4xl mx-auto border-accent/50 shadow-lg">
-            <CardHeader className="bg-accent/5">
-              <CardTitle className="text-2xl flex items-center gap-2">
+      <section className="container mx-auto px-4 py-12">
+        <Card className="max-w-4xl mx-auto border-accent/30 shadow-lg bg-gradient-to-br from-card to-accent/5">
+          <CardHeader className="border-b border-accent/20">
+            <CardTitle className="text-2xl md:text-3xl flex items-center gap-3">
+              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center">
                 <Megaphone className="w-6 h-6 text-accent" />
-                Avvisi alla clientela
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
+              </div>
+              Avvisi alla clientela
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {news.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground text-lg">
+                  Nessun avviso al momento. Torna presto per aggiornamenti!
+                </p>
+              </div>
+            ) : (
               <div className="space-y-4">
                 {news.slice(0, 3).map((item) => (
-                  <div key={item.id} className="pb-4 border-b last:border-b-0 last:pb-0">
-                    <h3 className="font-bold text-lg mb-2">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{item.body}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div key={item.id} className="pb-4 border-b border-border/50 last:border-b-0 last:pb-0">
+                    <h3 className="font-bold text-lg mb-2 text-foreground">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">{item.body}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
                       {format(new Date(item.published_at), "d MMMM yyyy", { locale: it })}
                     </p>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </section>
-      )}
+            )}
+          </CardContent>
+        </Card>
+      </section>
 
-      {/* Featured News Alert */}
+      {/* Featured News Alert - mantenuto per retrocompatibilità */}
       {featuredNews && <section className="container mx-auto px-4 py-8">
           <Alert className="bg-accent/10 border-accent">
             <Megaphone className="h-5 w-5 text-accent" />

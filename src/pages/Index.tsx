@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Scissors, Clock, MapPin, Phone, Mail, Megaphone } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -27,23 +27,9 @@ const Index = () => {
   const navigate = useNavigate();
   const [news, setNews] = useState<News[]>([]);
   const [settings, setSettings] = useState<ShopSettings | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   useEffect(() => {
     loadData();
-    checkAuth();
   }, []);
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    setIsAuthenticated(!!session);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  };
   const loadData = async () => {
     try {
       // Load published news
@@ -99,42 +85,41 @@ const Index = () => {
         <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent"></div>
       </section>
 
-      {/* Avvisi alla clientela */}
-      <section className="container mx-auto px-4 py-12">
-        <Card className="max-w-4xl mx-auto border-accent/30 shadow-lg bg-gradient-to-br from-card to-accent/5">
-          <CardHeader className="border-b border-accent/20">
-            <CardTitle className="text-2xl md:text-3xl flex items-center gap-3">
-              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center">
-                <Megaphone className="w-6 h-6 text-accent" />
-              </div>
-              Avvisi alla clientela
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {news.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground text-lg">
-                  Nessun avviso al momento. Torna presto per aggiornamenti!
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {news.slice(0, 3).map((item) => (
-                  <div key={item.id} className="pb-4 border-b border-border/50 last:border-b-0 last:pb-0">
-                    <h3 className="font-bold text-lg mb-2 text-foreground">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-2 leading-relaxed">{item.body}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {format(new Date(item.published_at), "d MMMM yyyy", { locale: it })}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </section>
+      {/* Featured News Alert */}
+      {featuredNews && <section className="container mx-auto px-4 py-8">
+          <Alert className="bg-accent/10 border-accent">
+            <Megaphone className="h-5 w-5 text-accent" />
+            <AlertDescription className="ml-2">
+              <strong>{featuredNews.title}</strong>
+              <p className="mt-1 text-sm">{featuredNews.body}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {format(new Date(featuredNews.published_at), "d MMMM yyyy", {
+              locale: it
+            })}
+              </p>
+            </AlertDescription>
+          </Alert>
+        </section>}
 
+      {/* News Section */}
+      {news.length > 0 && <section className="container mx-auto px-4 py-[8px]">
+          <h2 className="text-3xl font-bold mb-6 text-center">Notizie e Avvisi</h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
+                    {item.body}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(item.published_at), "d MMMM yyyy", {
+                locale: it
+              })}
+                  </p>
+                </CardContent>
+              </Card>)}
+          </div>
+        </section>}
 
       {/* Info Cards */}
       <section className="container mx-auto px-4 py-16">
@@ -219,7 +204,7 @@ const Index = () => {
         </div>
       </footer>
 
-      <BottomNav isAuthenticated={isAuthenticated} />
+      <BottomNav isAuthenticated={false} />
     </div>;
 };
 export default Index;

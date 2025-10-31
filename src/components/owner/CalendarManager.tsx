@@ -174,10 +174,10 @@ export const CalendarManager = () => {
     if (!confirm("Annullare questo appuntamento?")) return;
 
     try {
-      const { error } = await supabase
-        .from("appointments")
-        .update({ status: "CANCELED" })
-        .eq("id", id);
+      // Use RPC function to cancel (owner can always cancel)
+      const { data, error } = await supabase.rpc('cancel_appointment', {
+        p_appointment_id: id
+      });
 
       if (error) throw error;
 
@@ -198,7 +198,7 @@ export const CalendarManager = () => {
       if (selectedDate) loadAppointments(selectedDate);
     } catch (error: any) {
       console.error("Error canceling appointment:", error);
-      toast.error("Errore nell'annullamento");
+      toast.error(error.message || "Errore nell'annullamento");
     }
   };
 

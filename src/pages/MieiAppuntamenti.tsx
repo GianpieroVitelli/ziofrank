@@ -21,6 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const MieiAppuntamenti = () => {
   const navigate = useNavigate();
@@ -32,6 +38,7 @@ const MieiAppuntamenti = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
   const timezone = "Europe/Rome";
 
   useEffect(() => {
@@ -44,6 +51,7 @@ const MieiAppuntamenti = () => {
       setUser(session.user);
       loadAppointments(session.user.id);
       loadProfile(session.user.id);
+      loadUserRole(session.user.id);
     };
     checkAuth();
 
@@ -54,6 +62,7 @@ const MieiAppuntamenti = () => {
         setUser(session.user);
         loadAppointments(session.user.id);
         loadProfile(session.user.id);
+        loadUserRole(session.user.id);
       }
     });
 
@@ -95,6 +104,21 @@ const MieiAppuntamenti = () => {
     }
   };
 
+  const loadUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .single();
+
+      if (error) throw error;
+      setUserRole(data?.role || null);
+    } catch (error: any) {
+      console.error("Error loading user role:", error);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
 
@@ -120,10 +144,10 @@ const MieiAppuntamenti = () => {
 
   const handleCancel = async (appointmentId: string) => {
     try {
-      const { error } = await supabase
-        .from("appointments")
-        .update({ status: "CANCELED" })
-        .eq("id", appointmentId);
+      // Use RPC function to cancel with 24h validation
+      const { data, error } = await supabase.rpc('cancel_appointment', {
+        p_appointment_id: appointmentId
+      });
 
       if (error) throw error;
 
@@ -146,10 +170,18 @@ const MieiAppuntamenti = () => {
       }
     } catch (error: any) {
       console.error("Error canceling appointment:", error);
-      toast.error("Errore durante la cancellazione");
+      toast.error(error.message || "Errore durante la cancellazione");
     } finally {
       setCancelingId(null);
     }
+  };
+
+  const canCancelAppointment = (startTime: string): boolean => {
+    if (userRole === "PROPRIETARIO") return true;
+    const appointmentTime = new Date(startTime);
+    const now = new Date();
+    const hoursDifference = (appointmentTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return hoursDifference >= 24;
   };
 
   const handleLogout = async () => {
@@ -298,6 +330,7 @@ const MieiAppuntamenti = () => {
                   <div className="grid gap-4">
                     {futureAppointments.map((apt) => {
                       const startTime = toZonedTime(new Date(apt.start_time), timezone);
+                      const canCancel = canCancelAppointment(apt.start_time);
                       return (
                         <Card key={apt.id}>
                           <CardHeader>
@@ -312,13 +345,27 @@ const MieiAppuntamenti = () => {
                                   {format(startTime, "HH:mm")} - 45 minuti
                                 </CardDescription>
                               </div>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => setCancelingId(apt.id)}
-                              >
-                                Cancella
-                              </Button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span>
+                                      <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        onClick={() => setCancelingId(apt.id)}
+                                        disabled={!canCancel}
+                                      >
+                                        Cancella
+                                      </Button>
+                                    </span>
+                                  </TooltipTrigger>
+                                  {!canCancel && (
+                                    <TooltipContent>
+                                      <p>L'annullamento non è disponibile nelle 24 ore che precedono l'appuntamento. Contatta il negozio.</p>
+                                    </TooltipContent>
+                                  )}
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           </CardHeader>
                         </Card>

@@ -286,7 +286,7 @@ const Prenota = () => {
                     </div>
                     
                     {selectedSlot && (
-                      <div className="mt-3 sm:mt-4 md:mt-6">
+                      <div className="mt-3 sm:mt-4 md:mt-6 space-y-2">
                         <Button
                           size="lg"
                           onClick={handleConfirmBooking}
@@ -295,6 +295,9 @@ const Prenota = () => {
                         >
                           {bookingSlot ? "Prenotazione in corso..." : "Conferma Prenotazione"}
                         </Button>
+                        <p className="text-xs sm:text-sm text-red-600 font-medium text-center px-2">
+                          NB: Le prenotazioni non possono essere modificate o annullate a meno di 24 ore dall'orario previsto.
+                        </p>
                       </div>
                     )}
                     

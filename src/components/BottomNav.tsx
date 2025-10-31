@@ -38,7 +38,7 @@ const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps)
     }] : []),
     // Mostra Appuntamenti solo se autenticato E NON proprietario
     ...(isAuthenticated && !effectiveIsOwner ? [{
-      label: "Appuntamenti",
+      label: "Area personale",
       icon: Clock,
       path: "/miei-appuntamenti",
       show: true,

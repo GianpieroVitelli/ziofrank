@@ -190,8 +190,8 @@ const MieiAppuntamenti = () => {
       <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2">I tuoi appuntamenti</h2>
-            <p className="text-muted-foreground">Gestisci le tue prenotazioni</p>
+            <h2 className="text-3xl font-bold mb-2">Area personale</h2>
+            <p className="text-muted-foreground">Gestisci il tuo profilo e le tue prenotazioni</p>
           </div>
 
           {/* User Profile Section */}

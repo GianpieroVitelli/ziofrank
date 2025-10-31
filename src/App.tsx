@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Prenota from "./pages/Prenota";
 import MieiAppuntamenti from "./pages/MieiAppuntamenti";
 import Proprietario from "./pages/Proprietario";
+import Customers from "./pages/Customers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/prenota" element={<Prenota />} />
           <Route path="/miei-appuntamenti" element={<MieiAppuntamenti />} />
           <Route path="/proprietario" element={<Proprietario />} />
+          <Route path="/customers" element={<Customers />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -343,6 +343,16 @@ export type Database = {
       }
     }
     Functions: {
+      get_customers: {
+        Args: { search_query?: string; sort_order?: string }
+        Returns: {
+          display_name: string
+          email: string
+          id: string
+          last_appointment_at: string
+          phone: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

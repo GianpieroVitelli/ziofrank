@@ -69,28 +69,67 @@ const Customers = () => {
   const loadCustomers = async () => {
     setLoading(true);
     try {
-      // Build query for customers
-      let query = supabase.rpc("get_customers", {
-        search_query: searchQuery || null,
-        sort_order: sortBy
-      });
-
-      const { data: customersData, error: customersError } = await query;
-
-      if (customersError) throw customersError;
-
-      // Get total count for pagination
-      const { count } = await supabase
+      // Build query for customers from profiles with UTENTE role
+      let query = supabase
         .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .ilike("name", `%${searchQuery}%`);
+        .select("id, name, email, phone", { count: "exact" });
+
+      // Apply search filter
+      if (searchQuery) {
+        query = query.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
+      }
+
+      // Get data with count
+      const { data: profilesData, error: profilesError, count } = await query;
+
+      if (profilesError) throw profilesError;
 
       setTotalCount(count || 0);
 
-      // Paginate manually
+      // Get appointments to find last appointment date
+      const profileIds = (profilesData || []).map(p => p.id);
+      const { data: appointmentsData } = await supabase
+        .from("appointments")
+        .select("user_id, start_time")
+        .in("user_id", profileIds)
+        .eq("status", "CONFIRMED")
+        .order("start_time", { ascending: false });
+
+      // Map last appointment per user
+      const lastAppointmentMap: Record<string, string> = {};
+      (appointmentsData || []).forEach(apt => {
+        if (!lastAppointmentMap[apt.user_id]) {
+          lastAppointmentMap[apt.user_id] = apt.start_time;
+        }
+      });
+
+      // Combine data
+      let customersWithAppointments: Customer[] = (profilesData || []).map(p => ({
+        id: p.id,
+        display_name: p.name,
+        email: p.email,
+        phone: p.phone,
+        last_appointment_at: lastAppointmentMap[p.id] || null
+      }));
+
+      // Sort
+      if (sortBy === "alpha") {
+        customersWithAppointments.sort((a, b) =>
+          a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase())
+        );
+      } else {
+        customersWithAppointments.sort((a, b) => {
+          if (!a.last_appointment_at && !b.last_appointment_at) return a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase());
+          if (!a.last_appointment_at) return 1;
+          if (!b.last_appointment_at) return -1;
+          return new Date(b.last_appointment_at).getTime() - new Date(a.last_appointment_at).getTime();
+        });
+      }
+
+      // Paginate
       const start = (page - 1) * pageSize;
       const end = start + pageSize;
-      const paginatedCustomers = (customersData || []).slice(start, end);
+      const paginatedCustomers = customersWithAppointments.slice(start, end);
 
       setCustomers(paginatedCustomers);
 

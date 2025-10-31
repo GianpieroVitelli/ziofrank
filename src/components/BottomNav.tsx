@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Calendar, Clock, User } from "lucide-react";
+import { Home, Calendar, Clock, User, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BottomNavProps {
@@ -11,12 +11,19 @@ const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps)
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Se siamo in /proprietario, l'utente è sicuramente owner
-  const isOwnerRoute = location.pathname === "/proprietario";
+  // Se siamo in /proprietario o /customers, l'utente è sicuramente owner
+  const isOwnerRoute = location.pathname === "/proprietario" || location.pathname === "/customers";
   const effectiveIsOwner = isOwner || isOwnerRoute;
 
   // Sempre mostra home e prenota/menù basandosi su isOwner
   const navItems = [
+    // Mostra Clienti solo se proprietario
+    ...(effectiveIsOwner ? [{
+      label: "Clienti",
+      icon: Users,
+      path: "/customers",
+      show: true,
+    }] : []),
     {
       label: "Home",
       icon: Home,

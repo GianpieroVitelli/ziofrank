@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +13,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
-import { Plus, Edit, Trash2, Star, Mail, CalendarIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Mail, CalendarIcon, StickyNote, Save, X } from "lucide-react";
 
 interface Appointment {
   id: string;
@@ -27,12 +28,22 @@ interface Appointment {
   user_id: string | null;
 }
 
+interface CustomerNote {
+  id: string;
+  user_id: string;
+  note: string;
+  updated_at: string;
+}
+
 export const CalendarManager = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [customerNotes, setCustomerNotes] = useState<Record<string, CustomerNote>>({});
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const [customerNoteText, setCustomerNoteText] = useState("");
+  const [isEditingNote, setIsEditingNote] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
@@ -67,6 +78,24 @@ export const CalendarManager = () => {
 
       if (error) throw error;
       setAppointments(data || []);
+
+      // Load customer notes for appointments with user_id
+      const userIds = (data || [])
+        .map(apt => apt.user_id)
+        .filter((id): id is string => id !== null);
+      
+      if (userIds.length > 0) {
+        const { data: notesData } = await supabase
+          .from("customer_notes")
+          .select("*")
+          .in("user_id", userIds);
+
+        const notesMap: Record<string, CustomerNote> = {};
+        (notesData || []).forEach(note => {
+          notesMap[note.user_id] = note;
+        });
+        setCustomerNotes(notesMap);
+      }
     } catch (error: any) {
       console.error("Error loading appointments:", error);
       toast.error("Errore nel caricamento degli appuntamenti");
@@ -201,7 +230,75 @@ export const CalendarManager = () => {
       notes: appointment.notes || "",
       is_bonus: appointment.is_bonus,
     });
+    
+    // Load customer note if user_id exists
+    if (appointment.user_id && customerNotes[appointment.user_id]) {
+      setCustomerNoteText(customerNotes[appointment.user_id].note);
+    } else {
+      setCustomerNoteText("");
+    }
+    setIsEditingNote(false);
     setDialogOpen(true);
+  };
+
+  const saveCustomerNote = async () => {
+    if (!editingAppointment?.user_id) {
+      toast.error("Impossibile salvare: nessun cliente associato");
+      return;
+    }
+
+    if (!customerNoteText.trim()) {
+      toast.error("La nota non può essere vuota");
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("customer_notes")
+        .upsert({
+          user_id: editingAppointment.user_id,
+          note: customerNoteText.trim(),
+          updated_by: user.id,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) throw error;
+
+      toast.success("Nota cliente salvata");
+      setIsEditingNote(false);
+      
+      // Reload notes
+      if (selectedDate) loadAppointments(selectedDate);
+    } catch (error) {
+      console.error("Error saving customer note:", error);
+      toast.error("Errore nel salvataggio della nota");
+    }
+  };
+
+  const deleteCustomerNote = async () => {
+    if (!editingAppointment?.user_id) return;
+
+    try {
+      const { error } = await supabase
+        .from("customer_notes")
+        .delete()
+        .eq("user_id", editingAppointment.user_id);
+
+      if (error) throw error;
+
+      toast.success("Nota cliente eliminata");
+      setCustomerNoteText("");
+      setIsEditingNote(false);
+      
+      // Reload notes
+      if (selectedDate) loadAppointments(selectedDate);
+    } catch (error) {
+      console.error("Error deleting customer note:", error);
+      toast.error("Errore nell'eliminazione della nota");
+    }
   };
 
   const openNewDialog = () => {
@@ -409,6 +506,88 @@ export const CalendarManager = () => {
                 rows={3}
               />
             </div>
+
+            {/* Customer Note Section - Only shown when editing an appointment with user_id */}
+            {editingAppointment?.user_id && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <StickyNote className="w-4 h-4 text-muted-foreground" />
+                      <Label className="text-sm font-medium">Nota Cliente (Privata)</Label>
+                    </div>
+                    {!isEditingNote && customerNoteText && (
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsEditingNote(true)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={deleteCustomerNote}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {isEditingNote || !customerNoteText ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={customerNoteText}
+                        onChange={(e) => setCustomerNoteText(e.target.value)}
+                        placeholder="Aggiungi nota privata sul cliente..."
+                        className="min-h-[80px]"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={saveCustomerNote}
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          Salva Nota
+                        </Button>
+                        {customerNoteText && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setIsEditingNote(false);
+                              if (editingAppointment.user_id && customerNotes[editingAppointment.user_id]) {
+                                setCustomerNoteText(customerNotes[editingAppointment.user_id].note);
+                              }
+                            }}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Annulla
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-muted/30 rounded-md">
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {customerNoteText}
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Questa nota è visibile solo ai proprietari e persiste per tutti gli appuntamenti del cliente.
+                  </p>
+                </div>
+                <Separator className="my-4" />
+              </>
+            )}
 
             <div className="flex items-center space-x-2">
               <Switch

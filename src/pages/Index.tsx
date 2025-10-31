@@ -217,7 +217,7 @@ const Index = () => {
         </div>
       </footer>
 
-      {!isCheckingAuth && <BottomNav isAuthenticated={isAuthenticated} isOwner={isOwner} />}
+      <BottomNav isAuthenticated={isAuthenticated} isOwner={isOwner} />
     </div>;
 };
 export default Index;

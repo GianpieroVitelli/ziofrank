@@ -195,61 +195,66 @@ const MieiAppuntamenti = () => {
           </div>
 
           {/* User Profile Section */}
-          <Card className="mb-8 border-primary/20">
-            <CardHeader>
+          <Card className="mb-6 border-primary/20">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <User className="w-4 h-4" />
                   Il tuo profilo
                 </CardTitle>
                 {!editingProfile && (
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="h-8"
                     onClick={() => setEditingProfile(true)}
                   >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Modifica
+                    <Edit className="w-3.5 h-3.5 mr-1" />
+                    <span className="text-xs">Modifica</span>
                   </Button>
                 )}
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               {editingProfile ? (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-name">Nome</Label>
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-name" className="text-xs">Nome</Label>
                     <Input
                       id="edit-name"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       placeholder="Il tuo nome"
+                      className="h-9 text-sm"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-phone">Numero di telefono</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="edit-phone" className="text-xs">Numero di telefono</Label>
                     <Input
                       id="edit-phone"
                       type="tel"
                       value={editPhone}
                       onChange={(e) => setEditPhone(e.target.value)}
                       placeholder="+39 123 456 7890"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={handleSaveProfile}>
-                      <Save className="w-4 h-4 mr-2" />
+                    <Button onClick={handleSaveProfile} size="sm" className="h-8 text-xs">
+                      <Save className="w-3 h-3 mr-1" />
                       Salva
                     </Button>
                     <Button
                       variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
                       onClick={() => {
                         setEditingProfile(false);
                         setEditName(profile?.name || "");
                         setEditPhone(profile?.phone || "");
                       }}
                     >
-                      <X className="w-4 h-4 mr-2" />
+                      <X className="w-3 h-3 mr-1" />
                       Annulla
                     </Button>
                   </div>
@@ -257,12 +262,12 @@ const MieiAppuntamenti = () => {
               ) : (
                 <div className="space-y-2">
                   <div>
-                    <p className="text-sm text-muted-foreground">Nome</p>
-                    <p className="font-medium">{profile?.name || "—"}</p>
+                    <p className="text-xs text-muted-foreground">Nome</p>
+                    <p className="text-sm font-medium">{profile?.name || "—"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Telefono</p>
-                    <p className="font-medium">{profile?.phone || "—"}</p>
+                    <p className="text-xs text-muted-foreground">Telefono</p>
+                    <p className="text-sm font-medium">{profile?.phone || "—"}</p>
                   </div>
                 </div>
               )}

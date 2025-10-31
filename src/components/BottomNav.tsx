@@ -11,6 +11,10 @@ const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps)
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Se siamo in /proprietario, l'utente è sicuramente owner
+  const isOwnerRoute = location.pathname === "/proprietario";
+  const effectiveIsOwner = isOwner || isOwnerRoute;
+
   // Sempre mostra home e prenota/menù basandosi su isOwner
   const navItems = [
     {
@@ -20,13 +24,13 @@ const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps)
       show: true,
     },
     {
-      label: isOwner ? "Menù" : "Prenota",
+      label: effectiveIsOwner ? "Menù" : "Prenota",
       icon: Calendar,
-      path: isOwner ? "/proprietario" : "/prenota",
+      path: effectiveIsOwner ? "/proprietario" : "/prenota",
       show: true,
     },
     // Mostra Appuntamenti solo se autenticato E NON proprietario
-    ...(isAuthenticated && !isOwner ? [{
+    ...(isAuthenticated && !effectiveIsOwner ? [{
       label: "Appuntamenti",
       icon: Clock,
       path: "/miei-appuntamenti",

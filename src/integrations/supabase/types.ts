@@ -89,6 +89,59 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_notes: {
+        Row: {
+          id: string
+          note: string
+          updated_at: string
+          updated_by: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          note: string
+          updated_at?: string
+          updated_by: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          note?: string
+          updated_at?: string
+          updated_by?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "v_customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "v_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           appointment_id: string | null
@@ -264,7 +317,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_customers: {
+        Row: {
+          display_name: string | null
+          email: string | null
+          id: string | null
+          last_appointment_at: string | null
+          phone: string | null
+        }
+        Insert: {
+          display_name?: string | null
+          email?: string | null
+          id?: string | null
+          last_appointment_at?: never
+          phone?: string | null
+        }
+        Update: {
+          display_name?: string | null
+          email?: string | null
+          id?: string | null
+          last_appointment_at?: never
+          phone?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

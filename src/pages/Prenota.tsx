@@ -94,8 +94,8 @@ const Prenota = () => {
             slots.push(`${currentHour.toString().padStart(2, "0")}:${currentMin.toString().padStart(2, "0")}`);
           }
 
-          // Add 30 minutes
-          currentMin += 30;
+          // Add 45 minutes
+          currentMin += 45;
           if (currentMin >= 60) {
             currentMin -= 60;
             currentHour += 1;
@@ -146,7 +146,7 @@ const Prenota = () => {
       zonedDate.setHours(hour, minute, 0, 0);
       const startTime = fromZonedTime(zonedDate, timezone);
       const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + 30);
+      endTime.setMinutes(endTime.getMinutes() + 45);
 
       // Check one more time if slot is still available (prevent race conditions)
       const {

@@ -309,7 +309,7 @@ const MieiAppuntamenti = () => {
                                 </CardTitle>
                                 <CardDescription className="flex items-center gap-2 mt-2">
                                   <Clock className="w-4 h-4" />
-                                  {format(startTime, "HH:mm")} - 30 minuti
+                                  {format(startTime, "HH:mm")} - 45 minuti
                                 </CardDescription>
                               </div>
                               <Button

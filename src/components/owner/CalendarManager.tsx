@@ -112,7 +112,7 @@ export const CalendarManager = () => {
 
       const startTime = new Date(`${formData.date}T${formData.time}:00`);
       const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + 30);
+      endTime.setMinutes(endTime.getMinutes() + 45);
 
       const appointmentData = {
         start_time: startTime.toISOString(),

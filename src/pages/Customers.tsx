@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,6 @@ const Customers = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const pageSize = 25;
 
   useEffect(() => {
@@ -324,6 +323,13 @@ const Customers = () => {
     }
   };
 
+  const triggerFileInput = (customerId: string) => {
+    const input = document.getElementById(`photo-input-${customerId}`) as HTMLInputElement;
+    if (input) {
+      input.click();
+    }
+  };
+
   const handleFileSelect = (customerId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -412,8 +418,8 @@ const Customers = () => {
                             </AvatarFallback>
                           </Avatar>
                           <input
+                            id={`photo-input-${customer.id}`}
                             type="file"
-                            ref={(el) => (fileInputRefs.current[customer.id] = el)}
                             onChange={(e) => handleFileSelect(customer.id, e)}
                             accept="image/*"
                             className="hidden"
@@ -422,7 +428,7 @@ const Customers = () => {
                             size="icon"
                             variant="secondary"
                             className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full shadow-lg"
-                            onClick={() => fileInputRefs.current[customer.id]?.click()}
+                            onClick={() => triggerFileInput(customer.id)}
                             disabled={uploadingPhoto === customer.id}
                           >
                             <Camera className="w-4 h-4" />

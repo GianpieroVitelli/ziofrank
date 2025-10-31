@@ -30,6 +30,7 @@ const Index = () => {
   const [isOwner, setIsOwner] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -75,6 +76,8 @@ const Index = () => {
       if (settingsData) setSettings(settingsData);
     } catch (error) {
       console.error("Error loading data:", error);
+    } finally {
+      setIsLoadingSettings(false);
     }
   };
   const featuredNews = news.find(n => n.is_featured);
@@ -101,9 +104,11 @@ const Index = () => {
             <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
               <Scissors className="w-10 h-10 text-primary" />
             </div>
-            <h2 className="text-5xl font-bold mb-6">Benvenuto da {settings?.shop_name || "ZIO FRANK"}</h2>
+            <h2 className="text-5xl font-bold mb-6">
+              {isLoadingSettings ? "ZIO FRANK" : `Benvenuto da ${settings?.shop_name || "ZIO FRANK"}`}
+            </h2>
             <p className="text-xl mb-8 text-primary-foreground/90">
-              {settings?.description || "Il tuo barbiere di fiducia a Roma. Stile, precisione e professionalità dal 1985."}
+              {isLoadingSettings ? "\u00A0" : (settings?.description || "Il tuo barbiere di fiducia a Roma. Stile, precisione e professionalità dal 1985.")}
             </p>
             <Button size="lg" onClick={() => navigate("/prenota")} className="bg-accent text-accent-foreground hover:bg-accent/90 text-lg px-8 py-6 h-auto font-bold">
               Prenota il tuo appuntamento

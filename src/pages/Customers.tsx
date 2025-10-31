@@ -409,10 +409,10 @@ const Customers = () => {
                     <CardHeader>
                       <div className="flex items-start gap-3">
                         <div className="relative flex-shrink-0">
-                          <Avatar className="w-14 h-14 sm:w-16 sm:h-16">
+                          <Avatar className="w-12 h-12 sm:w-14 sm:h-14">
                             <AvatarImage src={photoUrls[customer.id]} alt={customer.display_name} />
                             <AvatarFallback>
-                              <UserCircle className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
+                              <UserCircle className="w-7 h-7 sm:w-8 sm:h-8 text-muted-foreground" />
                             </AvatarFallback>
                           </Avatar>
                           <input

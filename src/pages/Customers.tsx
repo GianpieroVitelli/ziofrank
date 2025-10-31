@@ -355,7 +355,6 @@ const Customers = () => {
 
       <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-7xl mx-auto">
-          {/* Search and filters */}
           <div className="mb-6 space-y-4">
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -391,7 +390,6 @@ const Customers = () => {
             </p>
           </div>
 
-          {/* Customers list */}
           {loading ? (
             <div className="text-center py-8">Caricamento...</div>
           ) : customers.length === 0 ? (
@@ -560,7 +558,6 @@ const Customers = () => {
             </div>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex justify-center gap-2 mt-6">
               <Button

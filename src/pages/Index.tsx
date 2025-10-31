@@ -29,6 +29,7 @@ const Index = () => {
   const [settings, setSettings] = useState<ShopSettings | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -55,6 +56,7 @@ const Index = () => {
         setIsOwner(true);
       }
     }
+    setIsCheckingAuth(false);
   };
   const loadData = async () => {
     try {
@@ -215,7 +217,7 @@ const Index = () => {
         </div>
       </footer>
 
-      <BottomNav isAuthenticated={isAuthenticated} isOwner={isOwner} />
+      {!isCheckingAuth && <BottomNav isAuthenticated={isAuthenticated} isOwner={isOwner} />}
     </div>;
 };
 export default Index;

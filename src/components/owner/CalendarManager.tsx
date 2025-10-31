@@ -50,7 +50,6 @@ export const CalendarManager = () => {
     client_name: "",
     client_email: "",
     client_phone: "",
-    notes: "",
     is_bonus: false,
   });
   const timezone = "Europe/Rome";
@@ -121,7 +120,7 @@ export const CalendarManager = () => {
         client_name: formData.client_name || null,
         client_email: formData.client_email || null,
         client_phone: formData.client_phone || null,
-        notes: formData.notes || null,
+        notes: null,
         is_bonus: formData.is_bonus,
         status: "CONFIRMED" as const,
         created_by: "owner",
@@ -227,7 +226,6 @@ export const CalendarManager = () => {
       client_name: appointment.client_name || "",
       client_email: appointment.client_email || "",
       client_phone: appointment.client_phone || "",
-      notes: appointment.notes || "",
       is_bonus: appointment.is_bonus,
     });
     
@@ -310,7 +308,6 @@ export const CalendarManager = () => {
       client_name: "",
       client_email: "",
       client_phone: "",
-      notes: "",
       is_bonus: false,
     });
     setDialogOpen(true);
@@ -323,7 +320,6 @@ export const CalendarManager = () => {
       client_name: "",
       client_email: "",
       client_phone: "",
-      notes: "",
       is_bonus: false,
     });
   };
@@ -400,8 +396,10 @@ export const CalendarManager = () => {
                           {apt.client_phone && (
                             <p className="text-xs sm:text-sm text-muted-foreground">{apt.client_phone}</p>
                           )}
-                          {apt.notes && (
-                            <p className="text-xs sm:text-sm text-muted-foreground mt-1 italic break-words">{apt.notes}</p>
+                          {apt.user_id && customerNotes[apt.user_id] && (
+                            <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words bg-muted/30 px-2 py-1 rounded">
+                              {customerNotes[apt.user_id].note}
+                            </p>
                           )}
                         </div>
                         <div className="flex gap-2 flex-wrap sm:flex-nowrap flex-shrink-0">
@@ -495,16 +493,6 @@ export const CalendarManager = () => {
                   onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
                 />
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="notes">Note</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows={3}
-              />
             </div>
 
             {/* Customer Note Section - Only shown when editing an appointment with user_id */}

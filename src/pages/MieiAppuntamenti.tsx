@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
-import { Scissors, LogOut, Calendar as CalendarIcon, Clock, AlertCircle } from "lucide-react";
+import { Scissors, LogOut, Calendar as CalendarIcon, Clock, AlertCircle, User, Edit, Save, X } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import {
   AlertDialog,
@@ -26,6 +28,10 @@ const MieiAppuntamenti = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<{ name: string; phone: string | null } | null>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const timezone = "Europe/Rome";
 
   useEffect(() => {
@@ -37,6 +43,7 @@ const MieiAppuntamenti = () => {
       }
       setUser(session.user);
       loadAppointments(session.user.id);
+      loadProfile(session.user.id);
     };
     checkAuth();
 
@@ -46,6 +53,7 @@ const MieiAppuntamenti = () => {
       } else {
         setUser(session.user);
         loadAppointments(session.user.id);
+        loadProfile(session.user.id);
       }
     });
 
@@ -67,6 +75,46 @@ const MieiAppuntamenti = () => {
       toast.error("Errore nel caricamento degli appuntamenti");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("name, phone")
+        .eq("id", userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+      setEditName(data.name);
+      setEditPhone(data.phone || "");
+    } catch (error: any) {
+      console.error("Error loading profile:", error);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          name: editName,
+          phone: editPhone || null,
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      setProfile({ name: editName, phone: editPhone || null });
+      setEditingProfile(false);
+      toast.success("Profilo aggiornato con successo");
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast.error("Errore nell'aggiornamento del profilo");
     }
   };
 
@@ -145,6 +193,81 @@ const MieiAppuntamenti = () => {
             <h2 className="text-3xl font-bold mb-2">I tuoi appuntamenti</h2>
             <p className="text-muted-foreground">Gestisci le tue prenotazioni</p>
           </div>
+
+          {/* User Profile Section */}
+          <Card className="mb-8 border-primary/20">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Il tuo profilo
+                </CardTitle>
+                {!editingProfile && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingProfile(true)}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Modifica
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {editingProfile ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-name">Nome</Label>
+                    <Input
+                      id="edit-name"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Il tuo nome"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-phone">Numero di telefono</Label>
+                    <Input
+                      id="edit-phone"
+                      type="tel"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      placeholder="+39 123 456 7890"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSaveProfile}>
+                      <Save className="w-4 h-4 mr-2" />
+                      Salva
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditingProfile(false);
+                        setEditName(profile?.name || "");
+                        setEditPhone(profile?.phone || "");
+                      }}
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Annulla
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nome</p>
+                    <p className="font-medium">{profile?.name || "—"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Telefono</p>
+                    <p className="font-medium">{profile?.phone || "—"}</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {loading ? (
             <div className="text-center py-12">

@@ -15,6 +15,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -49,6 +50,7 @@ const Auth = () => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             name: name,
+            phone: phone,
           },
         },
       });
@@ -165,6 +167,17 @@ const Auth = () => {
                       placeholder="Mario Rossi"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone">Numero di telefono</Label>
+                    <Input
+                      id="signup-phone"
+                      type="tel"
+                      placeholder="+39 123 456 7890"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       required
                     />
                   </div>

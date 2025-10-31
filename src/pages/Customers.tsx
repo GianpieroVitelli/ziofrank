@@ -69,14 +69,15 @@ const Customers = () => {
   const loadCustomers = async () => {
     setLoading(true);
     try {
-      // Build query for customers from profiles with UTENTE role
+      // Build query for customers from profiles
       let query = supabase
         .from("profiles")
         .select("id, name, email, phone", { count: "exact" });
 
       // Apply search filter
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
+      if (searchQuery && searchQuery.trim()) {
+        const searchTerm = `%${searchQuery.trim()}%`;
+        query = query.or(`name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`);
       }
 
       // Get data with count
@@ -88,16 +89,23 @@ const Customers = () => {
 
       // Get appointments to find last appointment date
       const profileIds = (profilesData || []).map(p => p.id);
-      const { data: appointmentsData } = await supabase
-        .from("appointments")
-        .select("user_id, start_time")
-        .in("user_id", profileIds)
-        .eq("status", "CONFIRMED")
-        .order("start_time", { ascending: false });
+      
+      let appointmentsData: Array<{ user_id: string; start_time: string }> = [];
+      
+      if (profileIds.length > 0) {
+        const { data: apptData } = await supabase
+          .from("appointments")
+          .select("user_id, start_time")
+          .in("user_id", profileIds)
+          .eq("status", "CONFIRMED")
+          .order("start_time", { ascending: false });
+        
+        appointmentsData = apptData || [];
+      }
 
       // Map last appointment per user
       const lastAppointmentMap: Record<string, string> = {};
-      (appointmentsData || []).forEach(apt => {
+      appointmentsData.forEach(apt => {
         if (!lastAppointmentMap[apt.user_id]) {
           lastAppointmentMap[apt.user_id] = apt.start_time;
         }
@@ -119,7 +127,9 @@ const Customers = () => {
         );
       } else {
         customersWithAppointments.sort((a, b) => {
-          if (!a.last_appointment_at && !b.last_appointment_at) return a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase());
+          if (!a.last_appointment_at && !b.last_appointment_at) {
+            return a.display_name.toLowerCase().localeCompare(b.display_name.toLowerCase());
+          }
           if (!a.last_appointment_at) return 1;
           if (!b.last_appointment_at) return -1;
           return new Date(b.last_appointment_at).getTime() - new Date(a.last_appointment_at).getTime();
@@ -146,6 +156,8 @@ const Customers = () => {
           notesMap[note.user_id] = note;
         });
         setNotes(notesMap);
+      } else {
+        setNotes({});
       }
     } catch (error) {
       console.error("Error loading customers:", error);

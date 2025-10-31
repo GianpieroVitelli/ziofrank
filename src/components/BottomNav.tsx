@@ -17,7 +17,7 @@ const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps)
 
   // Sempre mostra home e prenota/menù basandosi su isOwner
   const navItems = [
-    // Mostra Clienti solo se proprietario
+    // Mostra Clienti solo se proprietario (a sinistra)
     ...(effectiveIsOwner ? [{
       label: "Clienti",
       icon: Users,
@@ -25,15 +25,15 @@ const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps)
       show: true,
     }] : []),
     {
-      label: "Home",
-      icon: Home,
-      path: "/",
-      show: true,
-    },
-    {
       label: effectiveIsOwner ? "Menù" : "Prenota",
       icon: Calendar,
       path: effectiveIsOwner ? "/proprietario" : "/prenota",
+      show: true,
+    },
+    {
+      label: "Home",
+      icon: Home,
+      path: "/",
       show: true,
     },
     // Mostra Appuntamenti solo se autenticato E NON proprietario

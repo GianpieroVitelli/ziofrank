@@ -407,12 +407,12 @@ const Customers = () => {
                 return (
                   <Card key={customer.id}>
                     <CardHeader>
-                      <div className="flex items-start gap-4">
-                        <div className="relative">
-                          <Avatar className="w-20 h-20">
+                      <div className="flex items-start gap-3">
+                        <div className="relative flex-shrink-0">
+                          <Avatar className="w-14 h-14 sm:w-16 sm:h-16">
                             <AvatarImage src={photoUrls[customer.id]} alt={customer.display_name} />
                             <AvatarFallback>
-                              <UserCircle className="w-12 h-12 text-muted-foreground" />
+                              <UserCircle className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" />
                             </AvatarFallback>
                           </Avatar>
                           <input
@@ -425,48 +425,48 @@ const Customers = () => {
                           <Button
                             size="icon"
                             variant="secondary"
-                            className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full shadow-lg"
+                            className="absolute -bottom-1 -right-1 h-6 w-6 sm:h-7 sm:w-7 rounded-full shadow-lg"
                             onClick={() => triggerFileInput(customer.id)}
                             disabled={uploadingPhoto === customer.id}
                           >
-                            <Camera className="w-4 h-4" />
+                            <Camera className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           </Button>
                           {customer.customer_photo && (
                             <Button
                               size="icon"
                               variant="destructive"
-                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
+                              className="absolute -top-1 -right-1 h-5 w-5 sm:h-6 sm:w-6 rounded-full shadow-lg"
                               onClick={() => deletePhoto(customer.id)}
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </Button>
                           )}
                         </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-lg mb-2">{customer.display_name}</CardTitle>
-                          <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base sm:text-lg mb-2 truncate">{customer.display_name}</CardTitle>
+                          <div className="flex flex-col gap-1.5 text-xs sm:text-sm text-muted-foreground">
                             <a
                               href={`mailto:${customer.email}`}
-                              className="flex items-center gap-1 hover:text-primary"
+                              className="flex items-center gap-1 hover:text-primary truncate"
                             >
-                              <Mail className="w-4 h-4" />
-                              {customer.email}
+                              <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span className="truncate">{customer.email}</span>
                             </a>
                             {customer.phone ? (
                               <a
                                 href={`tel:${customer.phone}`}
-                                className="flex items-center gap-1 hover:text-primary"
+                                className="flex items-center gap-1 hover:text-primary truncate"
                               >
-                                <Phone className="w-4 h-4" />
-                                {customer.phone}
+                                <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                                <span className="truncate">{customer.phone}</span>
                               </a>
                             ) : (
                               <span className="flex items-center gap-1 text-muted-foreground/50">
-                                <Phone className="w-4 h-4" />—
+                                <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />—
                               </span>
                             )}
-                            <p className="text-sm">
-                              Ultimo appuntamento:{" "}
+                            <p className="text-xs sm:text-sm break-words">
+                              <span className="font-medium">Ultimo appuntamento:</span>{" "}
                               {customer.last_appointment_at
                                 ? new Date(customer.last_appointment_at).toLocaleDateString("it-IT", {
                                     day: "2-digit",
@@ -483,23 +483,25 @@ const Customers = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">Nota privata:</span>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs sm:text-sm font-medium flex-shrink-0">Nota privata:</span>
                           {!isEditing && note && (
-                            <div className="flex gap-2">
+                            <div className="flex gap-1 sm:gap-2 flex-shrink-0">
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="h-8 w-8 p-0"
                                 onClick={() => startEditNote(customer.id, note.note)}
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="h-8 w-8 p-0"
                                 onClick={() => deleteNote(customer.id)}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </Button>
                             </div>
                           )}
@@ -511,26 +513,26 @@ const Customers = () => {
                               value={noteText}
                               onChange={(e) => setNoteText(e.target.value)}
                               placeholder="Aggiungi nota privata..."
-                              className="min-h-[80px]"
+                              className="min-h-[80px] text-sm"
                             />
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
                               <Button size="sm" onClick={() => saveNote(customer.id)}>
-                                <Save className="w-4 h-4 mr-2" />
-                                Salva
+                                <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                <span className="text-xs sm:text-sm">Salva</span>
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={cancelEditNote}
                               >
-                                <X className="w-4 h-4 mr-2" />
-                                Annulla
+                                <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                <span className="text-xs sm:text-sm">Annulla</span>
                               </Button>
                             </div>
                           </div>
                         ) : note ? (
-                          <div className="text-sm">
-                            <p className="text-muted-foreground whitespace-pre-wrap">
+                          <div className="text-xs sm:text-sm">
+                            <p className="text-muted-foreground whitespace-pre-wrap break-words">
                               {note.note}
                             </p>
                             <p className="text-xs text-muted-foreground/60 mt-1">
@@ -545,6 +547,7 @@ const Customers = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            className="text-xs sm:text-sm"
                             onClick={() => startEditNote(customer.id)}
                           >
                             Aggiungi nota

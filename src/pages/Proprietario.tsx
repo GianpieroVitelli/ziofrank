@@ -136,8 +136,8 @@ const Proprietario = () => {
 
           {activeView === "calendar" && <>
               <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm mb-1 -ml-2">
-                  ← Torna
+                <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
+                  ← Torna al menù
                 </Button>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Calendario Prenotazioni</h2>
               </div>
@@ -146,8 +146,9 @@ const Proprietario = () => {
 
           {activeView === "settings" && <>
               <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm mb-1 -ml-2">← Torna al menù
-            </Button>
+                <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
+                  ← Torna al menù
+                </Button>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Impostazioni Negozio</h2>
               </div>
               <ShopSettingsEditor />
@@ -155,9 +156,8 @@ const Proprietario = () => {
 
           {activeView === "appointments" && <>
               <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm mb-1 -ml-2">
-                  <Calendar className="w-4 h-4" />
-                  Torna a menù
+                <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
+                  ← Torna al menù
                 </Button>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Tutti gli Appuntamenti</h2>
               </div>

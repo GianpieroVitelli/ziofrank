@@ -80,7 +80,7 @@ const Workdays = () => {
               ← Torna al menù
             </Button>
             <h2 className="text-3xl font-bold mb-2">Gestione giorni lavorativi</h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Gestisci aperture straordinarie, chiusure e blocchi orari
             </p>
           </div>

@@ -69,7 +69,7 @@ const Workdays = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 pb-24">
+      <main className="container mx-auto px-4 py-4 pb-24">
         <div className="max-w-7xl mx-auto">
           <div className="mb-4">
             <Button

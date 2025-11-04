@@ -9,6 +9,11 @@ import { WorkdaysManager } from "@/components/owner/WorkdaysManager";
 const Workdays = () => {
   const navigate = useNavigate();
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const checkAuth = async () => {
       const {

@@ -75,11 +75,11 @@ const Workdays = () => {
             <Button
               variant="ghost"
               onClick={() => navigate("/proprietario")}
-              className="mb-2"
+              className="mb-1"
             >
               ← Torna al menù
             </Button>
-            <h2 className="text-2xl font-bold mb-2">Gestione giorni lavorativi</h2>
+            <h2 className="text-2xl font-bold mb-1">Gestione giorni lavorativi</h2>
             <p className="text-sm text-muted-foreground">
               Gestisci aperture straordinarie, chiusure e blocchi orari
             </p>

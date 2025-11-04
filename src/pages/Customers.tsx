@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Search, Mail, Phone, Edit, Trash2, Save, X, Users, Camera, UserCircle } from "lucide-react";
+import { Search, Mail, Phone, Edit, Trash2, Save, X, Users, Camera, UserCircle, Lock, Unlock } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
@@ -19,6 +21,7 @@ interface Customer {
   phone: string | null;
   last_appointment_at: string | null;
   customer_photo: string | null;
+  is_blocked: boolean;
 }
 
 interface CustomerNote {
@@ -76,7 +79,7 @@ const Customers = () => {
       // Build query for customers from profiles
       let query = supabase
         .from("profiles")
-        .select("id, name, email, phone, customer_photo", { count: "exact" });
+        .select("id, name, email, phone, customer_photo, is_blocked", { count: "exact" });
 
       // Apply search filter
       if (searchQuery && searchQuery.trim()) {
@@ -122,7 +125,8 @@ const Customers = () => {
         email: p.email,
         phone: p.phone,
         last_appointment_at: lastAppointmentMap[p.id] || null,
-        customer_photo: p.customer_photo
+        customer_photo: p.customer_photo,
+        is_blocked: p.is_blocked || false
       }));
 
       // Sort
@@ -334,6 +338,27 @@ const Customers = () => {
     const file = event.target.files?.[0];
     if (file) {
       uploadPhoto(customerId, file);
+    }
+  };
+
+  const toggleBlockCustomer = async (customerId: string, currentBlockedStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_blocked: !currentBlockedStatus })
+        .eq("id", customerId);
+
+      if (error) throw error;
+
+      toast.success(
+        !currentBlockedStatus
+          ? "Cliente bloccato: non potrà più effettuare prenotazioni"
+          : "Cliente sbloccato: può effettuare prenotazioni"
+      );
+      loadCustomers();
+    } catch (error) {
+      console.error("Error toggling block status:", error);
+      toast.error("Errore nella modifica dello stato di blocco");
     }
   };
 
@@ -553,6 +578,35 @@ const Customers = () => {
                             Aggiungi nota
                           </Button>
                         )}
+
+                        {/* Blocco prenotazioni */}
+                        <div className="pt-3 mt-3 border-t">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              {customer.is_blocked ? (
+                                <Lock className="w-4 h-4 text-destructive" />
+                              ) : (
+                                <Unlock className="w-4 h-4 text-muted-foreground" />
+                              )}
+                              <Label 
+                                htmlFor={`block-${customer.id}`}
+                                className="text-xs sm:text-sm font-medium cursor-pointer"
+                              >
+                                Blocca prenotazioni
+                              </Label>
+                            </div>
+                            <Switch
+                              id={`block-${customer.id}`}
+                              checked={customer.is_blocked}
+                              onCheckedChange={() => toggleBlockCustomer(customer.id, customer.is_blocked)}
+                            />
+                          </div>
+                          {customer.is_blocked && (
+                            <p className="text-xs text-destructive mt-2">
+                              ⚠️ Questo cliente non può effettuare nuove prenotazioni
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

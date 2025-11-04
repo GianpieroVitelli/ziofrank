@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar } from "lucide-react";
+import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar, CalendarClock } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { CalendarManager } from "@/components/owner/CalendarManager";
 import { ShopSettingsEditor } from "@/components/owner/ShopSettingsEditor";
@@ -99,6 +99,19 @@ const Proprietario = () => {
                   </CardHeader>
                   <CardContent>
                     <Button className="w-full">Apri Calendario</Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/workdays")}>
+                  <CardHeader>
+                    <CalendarClock className="w-12 h-12 mb-4 text-primary" />
+                    <CardTitle>Modifica giorni lavorativi</CardTitle>
+                    <CardDescription>
+                      Gestisci aperture straordinarie, chiusure e blocca singoli orari.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full" variant="outline">Gestisci Orari</Button>
                   </CardContent>
                 </Card>
 

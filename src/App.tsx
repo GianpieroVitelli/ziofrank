@@ -9,6 +9,7 @@ import Prenota from "./pages/Prenota";
 import MieiAppuntamenti from "./pages/MieiAppuntamenti";
 import Proprietario from "./pages/Proprietario";
 import Customers from "./pages/Customers";
+import Workdays from "./pages/Workdays";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/miei-appuntamenti" element={<MieiAppuntamenti />} />
             <Route path="/proprietario" element={<Proprietario />} />
             <Route path="/customers" element={<Customers />} />
+            <Route path="/workdays" element={<Workdays />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -22,6 +22,7 @@ const Prenota = () => {
   const [loading, setLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
   const timezone = "Europe/Rome";
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,6 +36,17 @@ const Prenota = () => {
         return;
       }
       setUser(session.user);
+
+      // Check if user is blocked
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_blocked")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile?.is_blocked) {
+        setIsBlocked(true);
+      }
     };
     checkAuth();
     const {
@@ -263,7 +275,20 @@ const Prenota = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-2 sm:px-3 md:px-6">
-                {loading ? <div className="text-center py-8 text-muted-foreground">
+                {isBlocked ? (
+                  <div className="text-center py-8">
+                    <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+                      <span className="text-3xl">🔒</span>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Account Bloccato</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Il tuo account è bloccato: non puoi effettuare nuove prenotazioni.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Contatta il negozio per maggiori informazioni.
+                    </p>
+                  </div>
+                ) : loading ? <div className="text-center py-8 text-muted-foreground">
                     Caricamento...
                   </div> : allSlots.length === 0 ? <div className="text-center py-8">
                     <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />

@@ -142,6 +142,30 @@ export type Database = {
           },
         ]
       }
+      day_overrides: {
+        Row: {
+          created_at: string
+          day: string
+          id: string
+          reason: string | null
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          id?: string
+          reason?: string | null
+          state: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          id?: string
+          reason?: string | null
+          state?: string
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
           appointment_id: string | null
@@ -219,6 +243,7 @@ export type Database = {
           customer_photo: string | null
           email: string
           id: string
+          is_blocked: boolean
           name: string
           phone: string | null
           updated_at: string
@@ -228,6 +253,7 @@ export type Database = {
           customer_photo?: string | null
           email: string
           id: string
+          is_blocked?: boolean
           name: string
           phone?: string | null
           updated_at?: string
@@ -237,6 +263,7 @@ export type Database = {
           customer_photo?: string | null
           email?: string
           id?: string
+          is_blocked?: boolean
           name?: string
           phone?: string | null
           updated_at?: string
@@ -294,6 +321,30 @@ export type Database = {
           timezone?: string
           updated_at?: string
           website_url?: string
+        }
+        Relationships: []
+      }
+      slot_blocks: {
+        Row: {
+          created_at: string
+          day: string
+          end_time: string
+          id: string
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          end_time: string
+          id?: string
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          end_time?: string
+          id?: string
+          start_time?: string
         }
         Relationships: []
       }

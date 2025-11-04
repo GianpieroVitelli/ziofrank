@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { Clock, User, Phone, Mail, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Appointment {
   id: string;
@@ -22,6 +23,7 @@ interface Appointment {
 export const AppointmentsList = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCanceled, setShowCanceled] = useState(false);
 
   useEffect(() => {
     loadAppointments();
@@ -58,6 +60,10 @@ export const AppointmentsList = () => {
     return <div className="text-center py-8">Caricamento...</div>;
   }
 
+  const filteredAppointments = showCanceled 
+    ? appointments 
+    : appointments.filter(apt => apt.status !== "CANCELED");
+
   if (appointments.length === 0) {
     return (
       <Card>
@@ -70,7 +76,28 @@ export const AppointmentsList = () => {
 
   return (
     <div className="space-y-4">
-      {appointments.map((appointment) => (
+      <div className="flex items-center gap-2 mb-4">
+        <Checkbox 
+          id="show-canceled" 
+          checked={showCanceled}
+          onCheckedChange={(checked) => setShowCanceled(checked === true)}
+        />
+        <label 
+          htmlFor="show-canceled" 
+          className="text-xs text-destructive cursor-pointer select-none"
+        >
+          Mostra appuntamenti cancellati
+        </label>
+      </div>
+      
+      {filteredAppointments.length === 0 ? (
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            Nessun appuntamento trovato.
+          </CardContent>
+        </Card>
+      ) : (
+        filteredAppointments.map((appointment) => (
         <Card key={appointment.id} className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -127,7 +154,8 @@ export const AppointmentsList = () => {
             </div>
           </CardContent>
         </Card>
-      ))}
+        ))
+      )}
     </div>
   );
 };

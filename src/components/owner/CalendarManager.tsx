@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -44,6 +45,7 @@ export const CalendarManager = () => {
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [customerNoteText, setCustomerNoteText] = useState("");
   const [isEditingNote, setIsEditingNote] = useState(false);
+  const [showCanceled, setShowCanceled] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
@@ -368,8 +370,24 @@ export const CalendarManager = () => {
                 <p className="text-muted-foreground">Nessun appuntamento per questa data</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {appointments.map((apt) => {
+              <>
+                <div className="flex items-center gap-2 mb-4">
+                  <Checkbox 
+                    id="show-canceled-calendar" 
+                    checked={showCanceled}
+                    onCheckedChange={(checked) => setShowCanceled(checked === true)}
+                  />
+                  <label 
+                    htmlFor="show-canceled-calendar" 
+                    className="text-xs text-destructive cursor-pointer select-none"
+                  >
+                    Mostra appuntamenti cancellati
+                  </label>
+                </div>
+                <div className="space-y-3">
+                {appointments
+                  .filter(apt => showCanceled || apt.status !== "CANCELED")
+                  .map((apt) => {
                   const startTime = toZonedTime(new Date(apt.start_time), timezone);
                   return (
                     <div
@@ -430,6 +448,7 @@ export const CalendarManager = () => {
                   );
                 })}
               </div>
+              </>
             )}
           </CardContent>
         </Card>

@@ -71,15 +71,15 @@ const Workdays = () => {
 
       <main className="container mx-auto px-4 py-8 pb-24">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
+          <div className="mb-4">
             <Button
               variant="ghost"
               onClick={() => navigate("/proprietario")}
-              className="mb-4"
+              className="mb-2"
             >
               ← Torna al menù
             </Button>
-            <h2 className="text-3xl font-bold mb-2">Gestione giorni lavorativi</h2>
+            <h2 className="text-2xl font-bold mb-2">Gestione giorni lavorativi</h2>
             <p className="text-sm text-muted-foreground">
               Gestisci aperture straordinarie, chiusure e blocchi orari
             </p>

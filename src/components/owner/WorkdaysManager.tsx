@@ -249,7 +249,6 @@ export const WorkdaysManager = () => {
           .eq("start_time", `${slot.time}:00`);
 
         if (error) throw error;
-        toast.success("Slot sbloccato");
       } else {
         // Block
         const [hour, minute] = slot.time.split(":").map(Number);
@@ -265,7 +264,6 @@ export const WorkdaysManager = () => {
           });
 
         if (error) throw error;
-        toast.success("Slot bloccato");
       }
 
       loadDayData(selectedDate);

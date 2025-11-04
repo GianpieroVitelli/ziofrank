@@ -58,7 +58,7 @@ const Proprietario = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Scissors className="w-6 h-6" />
-            <h1 className="text-2xl font-bold">ZIO FRANK - Dashboard Proprietario</h1>
+            <h1 className="text-lg font-bold">ZIO FRANK - Dashboard Proprietario</h1>
           </div>
           <Button variant="ghost" onClick={handleLogout} className="text-primary-foreground hover:bg-primary-foreground/20">
             <LogOut className="w-4 h-4 mr-2" />

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Scissors, LogOut, CalendarDays, Settings, Newspaper } from "lucide-react";
+import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { CalendarManager } from "@/components/owner/CalendarManager";
 import { ShopSettingsEditor } from "@/components/owner/ShopSettingsEditor";
@@ -142,8 +142,10 @@ const Proprietario = () => {
 
           {activeView === "appointments" && <>
               <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
-                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm">← Torna
-            </Button>
+                <Button variant="ghost" size="sm" onClick={() => setActiveView("dashboard")} className="text-xs md:text-sm">
+                  <Calendar className="w-4 h-4" />
+                  Torna a menù
+                </Button>
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Tutti gli Appuntamenti</h2>
               </div>
               <AppointmentsList />

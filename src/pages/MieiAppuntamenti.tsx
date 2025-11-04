@@ -11,6 +11,7 @@ import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
 import { Scissors, LogOut, Calendar as CalendarIcon, Clock, AlertCircle, User, Edit, Save, X } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,11 +35,12 @@ const MieiAppuntamenti = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<{ name: string; phone: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ name: string; phone: string | null; customer_photo: string | null } | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const timezone = "Europe/Rome";
 
   useEffect(() => {
@@ -91,7 +93,7 @@ const MieiAppuntamenti = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("name, phone")
+        .select("name, phone, customer_photo")
         .eq("id", userId)
         .single();
 
@@ -99,6 +101,17 @@ const MieiAppuntamenti = () => {
       setProfile(data);
       setEditName(data.name);
       setEditPhone(data.phone || "");
+
+      // Load photo URL if exists
+      if (data.customer_photo) {
+        const { data: urlData } = await supabase.storage
+          .from("customer-photos")
+          .createSignedUrl(data.customer_photo, 3600);
+        
+        if (urlData?.signedUrl) {
+          setPhotoUrl(urlData.signedUrl);
+        }
+      }
     } catch (error: any) {
       console.error("Error loading profile:", error);
     }
@@ -133,7 +146,7 @@ const MieiAppuntamenti = () => {
 
       if (error) throw error;
 
-      setProfile({ name: editName, phone: editPhone || null });
+      setProfile({ name: editName, phone: editPhone || null, customer_photo: profile?.customer_photo || null });
       setEditingProfile(false);
       toast.success("Profilo aggiornato con successo");
     } catch (error: any) {
@@ -248,7 +261,15 @@ const MieiAppuntamenti = () => {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              {editingProfile ? (
+              <div className="flex items-start gap-4 mb-4">
+                <Avatar className="w-16 h-16">
+                  <AvatarImage src={photoUrl || undefined} alt={profile?.name} />
+                  <AvatarFallback className="text-lg">
+                    <User className="w-8 h-8" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  {editingProfile ? (
                 <div className="space-y-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="edit-name" className="text-xs">Nome</Label>
@@ -290,19 +311,21 @@ const MieiAppuntamenti = () => {
                       Annulla
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Nome</p>
-                    <p className="text-sm font-medium">{profile?.name || "—"}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Telefono</p>
-                    <p className="text-sm font-medium">{profile?.phone || "—"}</p>
+                ) : (
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Nome</p>
+                      <p className="text-sm font-medium">{profile?.name || "—"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Telefono</p>
+                      <p className="text-sm font-medium">{profile?.phone || "—"}</p>
+                    </div>
                   </div>
+                )}
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
 

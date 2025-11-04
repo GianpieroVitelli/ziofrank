@@ -14,6 +14,11 @@ const Proprietario = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news" | "appointments">("dashboard");
+
+  // Scroll to top when view changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeView]);
   useEffect(() => {
     const checkAuth = async () => {
       const {

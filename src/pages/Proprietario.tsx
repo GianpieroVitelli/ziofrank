@@ -72,7 +72,7 @@ const Proprietario = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 pb-24">
+      <main className="container mx-auto px-4 py-2 pb-24">
         <div className="max-w-7xl mx-auto">
           {activeView === "dashboard" && <>
               <div className="mb-8">
@@ -140,31 +140,31 @@ const Proprietario = () => {
             </>}
 
           {activeView === "calendar" && <>
-              <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
+              <div className="mb-4">
                 <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
                   ← Torna al menù
                 </Button>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Calendario Prenotazioni</h2>
+                <h2 className="text-2xl font-bold mb-1">Calendario Prenotazioni</h2>
               </div>
               <CalendarManager />
             </>}
 
           {activeView === "settings" && <>
-              <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
+              <div className="mb-4">
                 <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
                   ← Torna al menù
                 </Button>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Impostazioni Negozio</h2>
+                <h2 className="text-2xl font-bold mb-1">Impostazioni Negozio</h2>
               </div>
               <ShopSettingsEditor />
             </>}
 
           {activeView === "appointments" && <>
-              <div className="mb-4 md:mb-6 space-y-3 md:space-y-0 md:flex md:items-center md:gap-4">
+              <div className="mb-4">
                 <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
                   ← Torna al menù
                 </Button>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold">Tutti gli Appuntamenti</h2>
+                <h2 className="text-2xl font-bold mb-1">Tutti gli Appuntamenti</h2>
               </div>
               <AppointmentsList />
             </>}

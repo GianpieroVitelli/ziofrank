@@ -82,6 +82,60 @@ const Index = () => {
     }
   };
   const featuredNews = news.find(n => n.is_featured);
+  
+  const formatOpenHours = () => {
+    if (!settings?.open_hours) return null;
+    
+    const dayNames: { [key: string]: string } = {
+      mon: "Lunedì",
+      tue: "Martedì", 
+      wed: "Mercoledì",
+      thu: "Giovedì",
+      fri: "Venerdì",
+      sat: "Sabato",
+      sun: "Domenica"
+    };
+
+    const hours = settings.open_hours;
+    const daysOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    
+    // Group consecutive days with same hours
+    const groupedHours: Array<{ days: string; hours: string[][] }> = [];
+    
+    for (let i = 0; i < daysOrder.length; i++) {
+      const day = daysOrder[i];
+      const dayHours = hours[day] || [];
+      
+      if (dayHours.length === 0) {
+        groupedHours.push({ days: dayNames[day], hours: [] });
+        continue;
+      }
+      
+      // Check if we can group with previous day
+      const prevGroup = groupedHours[groupedHours.length - 1];
+      const hoursMatch = prevGroup && 
+        JSON.stringify(prevGroup.hours) === JSON.stringify(dayHours);
+      
+      if (hoursMatch && prevGroup.hours.length > 0) {
+        // Extend the range
+        const lastDayInGroup = prevGroup.days.split('-').pop()?.trim() || '';
+        const firstDayInGroup = prevGroup.days.split('-')[0].trim();
+        prevGroup.days = `${firstDayInGroup}-${dayNames[day]}`;
+      } else {
+        groupedHours.push({ days: dayNames[day], hours: dayHours });
+      }
+    }
+    
+    return groupedHours.map((group, idx) => (
+      <p key={idx}>
+        <strong>{group.days}:</strong>{' '}
+        {group.hours.length === 0 
+          ? 'Chiuso' 
+          : group.hours.map(slot => `${slot[0]} - ${slot[1]}`).join(', ')}
+      </p>
+    ));
+  };
+
   return <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
@@ -150,9 +204,15 @@ const Index = () => {
               </div>
               <h3 className="text-lg font-bold mb-2">Orari di Apertura</h3>
               <div className="text-sm text-muted-foreground space-y-1">
-                <p><strong>Lun-Ven:</strong> 09:00 - 13:00, 15:00 - 19:00</p>
-                <p><strong>Sabato:</strong> 09:00 - 13:00</p>
-                <p><strong>Domenica:</strong> Chiuso</p>
+                {isLoadingSettings ? (
+                  <>
+                    <p><strong>Lun-Ven:</strong> 09:00 - 13:00, 15:00 - 19:00</p>
+                    <p><strong>Sabato:</strong> 09:00 - 13:00</p>
+                    <p><strong>Domenica:</strong> Chiuso</p>
+                  </>
+                ) : (
+                  formatOpenHours()
+                )}
               </div>
             </CardContent>
           </Card>

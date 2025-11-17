@@ -201,7 +201,7 @@ const handler = async (req: Request): Promise<Response> => {
       startTime,
       endTime,
       `Appuntamento - ${shopName}`,
-      `Appuntamento presso ${shopName}\nData: ${dateStr}\nOrario: ${timeStr}\nIndirizzo: ${shopAddress}`,
+      `Appuntamento presso ${shopName}. Data: ${dateStr}. Orario: ${timeStr}. Indirizzo: ${shopAddress}`,
       shopAddress,
       emailFrom,
       clientEmail,
@@ -274,7 +274,7 @@ const handler = async (req: Request): Promise<Response> => {
       attachments: [
         {
           filename: 'appuntamento.ics',
-          content: btoa(icsContent),
+          content: btoa(new TextEncoder().encode(icsContent).reduce((data, byte) => data + String.fromCharCode(byte), '')),
         },
       ],
     });

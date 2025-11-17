@@ -274,7 +274,7 @@ const handler = async (req: Request): Promise<Response> => {
       attachments: [
         {
           filename: 'appuntamento.ics',
-          content: btoa(new TextEncoder().encode(icsContent).reduce((data, byte) => data + String.fromCharCode(byte), '')),
+          content: btoa(unescape(encodeURIComponent(icsContent))),
         },
       ],
     });

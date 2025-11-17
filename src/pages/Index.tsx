@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Scissors, Clock, MapPin, Phone, Mail, Megaphone } from "lucide-react";
+import { Scissors, Clock, MapPin, Phone, Mail, Megaphone, Instagram } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -22,6 +22,7 @@ interface ShopSettings {
   phone: string;
   email_from: string;
   open_hours: any;
+  social_links?: any;
 }
 const Index = () => {
   const navigate = useNavigate();
@@ -190,6 +191,14 @@ const Index = () => {
                     {settings?.email_from || "info@ziofrank.it"}
                   </a>
                 </p>
+                {settings?.social_links?.instagram && (
+                  <p className="flex items-center gap-2">
+                    <Instagram className="w-4 h-4" />
+                    <a href={settings.social_links.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-accent">
+                      Instagram
+                    </a>
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -199,67 +199,79 @@ const Index = () => {
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
-              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6 text-accent" />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Orari di Apertura</h3>
-              <div className="text-sm text-muted-foreground space-y-1">
-                {isLoadingSettings ? (
-                  <>
-                    <p><strong>Lun-Ven:</strong> 09:00 - 13:00, 15:00 - 19:00</p>
-                    <p><strong>Sabato:</strong> 09:00 - 13:00</p>
-                    <p><strong>Domenica:</strong> Chiuso</p>
-                  </>
-                ) : (
-                  formatOpenHours()
-                )}
+              <div className="flex gap-4">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-6 h-6 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold mb-2">Orari di Apertura</h3>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    {isLoadingSettings ? (
+                      <>
+                        <p><strong>Lun-Ven:</strong> 09:00 - 13:00, 15:00 - 19:00</p>
+                        <p><strong>Sabato:</strong> 09:00 - 13:00</p>
+                        <p><strong>Domenica:</strong> Chiuso</p>
+                      </>
+                    ) : (
+                      formatOpenHours()
+                    )}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
-              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                <Phone className="w-6 h-6 text-accent" />
+              <div className="flex gap-4">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <Phone className="w-6 h-6 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold mb-2">Contatti</h3>
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      <a href={`tel:${settings?.phone || "+390612345678"}`} className="hover:text-accent">
+                        {settings?.phone || "+39 06 1234567"}
+                      </a>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      <a href={`mailto:${settings?.email_from || "info@ziofrank.it"}`} className="hover:text-accent">
+                        {settings?.email_from || "info@ziofrank.it"}
+                      </a>
+                    </p>
+                    {settings?.social_links?.instagram && (
+                      <p className="flex items-center gap-2">
+                        <Instagram className="w-4 h-4" />
+                        <a href={settings.social_links.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-accent">
+                          Instagram
+                        </a>
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-              <h3 className="text-lg font-bold mb-2">Contatti</h3>
-              <div className="text-sm text-muted-foreground space-y-2">
-                <p className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  <a href={`tel:${settings?.phone || "+390612345678"}`} className="hover:text-accent">
-                    {settings?.phone || "+39 06 1234567"}
-                  </a>
-                </p>
-                <p className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  <a href={`mailto:${settings?.email_from || "info@ziofrank.it"}`} className="hover:text-accent">
-                    {settings?.email_from || "info@ziofrank.it"}
-                  </a>
-                </p>
-                {settings?.social_links?.instagram && (
-                  <p className="flex items-center gap-2">
-                    <Instagram className="w-4 h-4" />
-                    <a href={settings.social_links.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-accent">
-                      Instagram
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="flex gap-4">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-6 h-6 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold mb-2">Dove Siamo</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {settings?.address || "Via Roma 1, 00100 Roma"}<br />
+                    <a href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                      Vedi sulla mappa →
                     </a>
                   </p>
-                )}
+                </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                <MapPin className="w-6 h-6 text-accent" />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Dove Siamo</h3>
-              <p className="text-sm text-muted-foreground">
-                {settings?.address || "Via Roma 1, 00100 Roma"}<br />
-                <a href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
-                  Vedi sulla mappa →
-                </a>
-              </p>
             </CardContent>
           </Card>
         </div>

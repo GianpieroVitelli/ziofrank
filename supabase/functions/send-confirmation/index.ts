@@ -240,12 +240,14 @@ const handler = async (req: Request): Promise<Response> => {
             <h3 style="margin-top: 0; color: #333;">📅 Aggiungi al Calendario</h3>
             <p style="margin: 10px 0; color: #666; font-size: 14px;">Salva questo appuntamento nel tuo calendario preferito</p>
             <div style="margin: 15px 0;">
-              <p style="margin: 10px 0;"><a href="${calendarLinks.google}" target="_blank" style="display: inline-block; background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Google Calendar</a></p>
-              <p style="margin: 10px 0;"><a href="${calendarLinks.outlook}" target="_blank" style="display: inline-block; background-color: #0078d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Outlook</a></p>
-              <p style="margin: 10px 0;"><a href="${calendarLinks.office365}" target="_blank" style="display: inline-block; background-color: #d83b01; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Office 365</a></p>
-              <p style="margin: 10px 0;"><a href="data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}" download="appuntamento.ics" style="display: inline-block; background-color: #555555; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Apple Calendar</a></p>
+              <p style="margin: 10px 0;"><a href="${calendarLinks.google}" target="_blank" style="display: inline-block; background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">📅 Google Calendar</a></p>
+              <p style="margin: 10px 0;"><a href="${calendarLinks.outlook}" target="_blank" style="display: inline-block; background-color: #0078d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">📧 Outlook</a></p>
+              <p style="margin: 10px 0;"><a href="${calendarLinks.office365}" target="_blank" style="display: inline-block; background-color: #d83b01; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">💼 Office 365</a></p>
             </div>
-            <p style="margin-top: 15px; color: #666; font-size: 12px;">Il file .ics è anche disponibile come allegato a questa email</p>
+            <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 20px;">
+              <p style="margin: 0; color: #333; font-size: 14px;"><strong>📎 Per Apple Calendar, Thunderbird e altri:</strong></p>
+              <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Scarica il file <strong>appuntamento.ics</strong> allegato a questa email e aprilo con il tuo calendario</p>
+            </div>
           </div>
 
           <p><strong>Hai bisogno di modificare l'appuntamento?</strong></p>

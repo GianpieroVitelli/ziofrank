@@ -199,8 +199,8 @@ const Index = () => {
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <Card className="hover:shadow-lg transition-shadow h-full">
             <CardContent className="p-6">
-              <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="flex gap-4 items-center">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
                   <Clock className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -223,8 +223,8 @@ const Index = () => {
 
           <Card className="hover:shadow-lg transition-shadow h-full">
             <CardContent className="p-6">
-              <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="flex gap-4 items-center">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
                   <Phone className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -258,8 +258,8 @@ const Index = () => {
 
           <Card className="hover:shadow-lg transition-shadow h-full">
             <CardContent className="p-6">
-              <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="flex gap-4 items-center">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">

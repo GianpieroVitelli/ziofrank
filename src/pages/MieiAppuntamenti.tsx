@@ -41,6 +41,7 @@ const MieiAppuntamenti = () => {
   const [editPhone, setEditPhone] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [showCanceled, setShowCanceled] = useState(false);
   const timezone = "Europe/Rome";
 
   useEffect(() => {
@@ -209,8 +210,18 @@ const MieiAppuntamenti = () => {
   );
   
   const pastAppointments = appointments.filter(apt => 
-    apt.status === "CANCELED" || new Date(apt.start_time) <= new Date()
+    apt.status === "CONFIRMED" && new Date(apt.start_time) <= new Date()
   );
+  
+  const canceledAppointments = appointments.filter(apt => 
+    apt.status === "CANCELED"
+  );
+  
+  const displayedPastAppointments = showCanceled 
+    ? [...pastAppointments, ...canceledAppointments].sort((a, b) => 
+        new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+      )
+    : pastAppointments;
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
@@ -398,11 +409,22 @@ const MieiAppuntamenti = () => {
                 )}
               </section>
 
-              {pastAppointments.length > 0 && (
+              {(pastAppointments.length > 0 || canceledAppointments.length > 0) && (
                 <section>
-                  <h3 className="text-xl font-semibold mb-4">Storico</h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold">Storico</h3>
+                    {canceledAppointments.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowCanceled(!showCanceled)}
+                      >
+                        {showCanceled ? "Nascondi" : "Mostra"} cancellati ({canceledAppointments.length})
+                      </Button>
+                    )}
+                  </div>
                   <div className="grid gap-4">
-                    {pastAppointments.map((apt) => {
+                    {displayedPastAppointments.map((apt) => {
                       const startTime = toZonedTime(new Date(apt.start_time), timezone);
                       return (
                         <Card key={apt.id} className="opacity-60">

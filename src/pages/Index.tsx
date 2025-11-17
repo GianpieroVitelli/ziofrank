@@ -175,7 +175,7 @@ const Index = () => {
 
 
       {/* News Section */}
-      {news.length > 0 && <section className="container mx-auto px-4 py-12">
+      {news.length > 0 && <section className="container mx-auto px-4 py-6">
           <h2 className="text-3xl font-bold mb-8 text-center">Notizie e Avvisi</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow bg-accent/15 border-accent/20 h-full flex flex-col">
@@ -195,7 +195,7 @@ const Index = () => {
         </section>}
 
       {/* Info Cards */}
-      <section id="contatti" className="container mx-auto px-4 py-16">
+      <section id="contatti" className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <Card className="hover:shadow-lg transition-shadow h-full">
             <CardContent className="p-4">

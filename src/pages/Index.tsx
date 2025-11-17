@@ -198,7 +198,7 @@ const Index = () => {
       <section id="contatti" className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <Card className="hover:shadow-lg transition-shadow h-full">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex gap-4 items-center">
                 <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
                   <Clock className="w-6 h-6 text-accent" />
@@ -222,7 +222,7 @@ const Index = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow h-full">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex gap-4 items-center">
                 <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
                   <Phone className="w-6 h-6 text-accent" />
@@ -257,7 +257,7 @@ const Index = () => {
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow h-full">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex gap-4 items-center">
                 <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-6 h-6 text-accent" />

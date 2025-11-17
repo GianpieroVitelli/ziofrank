@@ -175,16 +175,16 @@ const Index = () => {
 
 
       {/* News Section */}
-      {news.length > 0 && <section className="container mx-auto px-4 py-[8px]">
-          <h2 className="text-3xl font-bold mb-6 text-center">Notizie e Avvisi</h2>
+      {news.length > 0 && <section className="container mx-auto px-4 py-12">
+          <h2 className="text-3xl font-bold mb-8 text-center">Notizie e Avvisi</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow bg-accent/15 border-accent/20">
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3 line-clamp-3">
+            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow bg-accent/15 border-accent/20 h-full flex flex-col">
+                <CardContent className="p-6 flex flex-col flex-1">
+                  <h3 className="text-lg font-bold mb-3">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">
                     {item.body}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mt-auto">
                     {format(new Date(item.published_at), "d MMMM yyyy", {
                 locale: it
               })}
@@ -196,15 +196,15 @@ const Index = () => {
 
       {/* Info Cards */}
       <section id="contatti" className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <Card className="hover:shadow-lg transition-shadow h-full">
+            <CardContent className="p-6">
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                   <Clock className="w-6 h-6 text-accent" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-2">Orari di Apertura</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold mb-3">Orari di Apertura</h3>
                   <div className="text-sm text-muted-foreground space-y-1">
                     {isLoadingSettings ? (
                       <>
@@ -221,31 +221,31 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <Card className="hover:shadow-lg transition-shadow h-full">
+            <CardContent className="p-6">
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                   <Phone className="w-6 h-6 text-accent" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-2">Contatti</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold mb-3">Contatti</h3>
                   <div className="text-sm text-muted-foreground space-y-2">
                     <p className="flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      <a href={`tel:${settings?.phone || "+390612345678"}`} className="hover:text-accent">
+                      <Phone className="w-4 h-4 flex-shrink-0" />
+                      <a href={`tel:${settings?.phone || "+390612345678"}`} className="hover:text-accent truncate">
                         {settings?.phone || "+39 06 1234567"}
                       </a>
                     </p>
                     <p className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      <a href={`mailto:${settings?.email_from || "info@ziofrank.it"}`} className="hover:text-accent">
+                      <Mail className="w-4 h-4 flex-shrink-0" />
+                      <a href={`mailto:${settings?.email_from || "info@ziofrank.it"}`} className="hover:text-accent truncate">
                         {settings?.email_from || "info@ziofrank.it"}
                       </a>
                     </p>
                     {settings?.social_links?.instagram && (
                       <p className="flex items-center gap-2">
-                        <Instagram className="w-4 h-4" />
-                        <a href={settings.social_links.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-accent">
+                        <Instagram className="w-4 h-4 flex-shrink-0" />
+                        <a href={settings.social_links.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-accent truncate">
                           Instagram
                         </a>
                       </p>
@@ -256,20 +256,20 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="flex gap-4">
-                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0">
+          <Card className="hover:shadow-lg transition-shadow h-full">
+            <CardContent className="p-6">
+              <div className="flex gap-4 items-start">
+                <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                   <MapPin className="w-6 h-6 text-accent" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-2">Dove Siamo</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg font-bold mb-3">Dove Siamo</h3>
                   <p className="text-sm text-muted-foreground">
-                    {settings?.address || "Via Roma 1, 00100 Roma"}<br />
-                    <a href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
-                      Vedi sulla mappa →
-                    </a>
+                    {settings?.address || "Via Roma 1, 00100 Roma"}
                   </p>
+                  <a href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-sm inline-block mt-2">
+                    Vedi sulla mappa →
+                  </a>
                 </div>
               </div>
             </CardContent>

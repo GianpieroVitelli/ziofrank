@@ -243,8 +243,9 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="margin: 10px 0;"><a href="${calendarLinks.google}" target="_blank" style="display: inline-block; background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Google Calendar</a></p>
               <p style="margin: 10px 0;"><a href="${calendarLinks.outlook}" target="_blank" style="display: inline-block; background-color: #0078d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Outlook</a></p>
               <p style="margin: 10px 0;"><a href="${calendarLinks.office365}" target="_blank" style="display: inline-block; background-color: #d83b01; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Office 365</a></p>
+              <p style="margin: 10px 0;"><a href="data:text/calendar;charset=utf-8,${encodeURIComponent(icsContent)}" download="appuntamento.ics" style="display: inline-block; background-color: #555555; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Apple Calendar</a></p>
             </div>
-            <p style="margin-top: 15px; color: #666; font-size: 12px;">Oppure scarica il file .ics allegato e aprilo con il tuo calendario (Apple Calendar, ecc.)</p>
+            <p style="margin-top: 15px; color: #666; font-size: 12px;">Il file .ics è anche disponibile come allegato a questa email</p>
           </div>
 
           <p><strong>Hai bisogno di modificare l'appuntamento?</strong></p>

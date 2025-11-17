@@ -220,21 +220,6 @@ const Index = () => {
           <Card className="hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
               <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
-                <MapPin className="w-6 h-6 text-accent" />
-              </div>
-              <h3 className="text-lg font-bold mb-2">Dove Siamo</h3>
-              <p className="text-sm text-muted-foreground">
-                {settings?.address || "Via Roma 1, 00100 Roma"}<br />
-                <a href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
-                  Vedi sulla mappa →
-                </a>
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="pt-6">
-              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
                 <Phone className="w-6 h-6 text-accent" />
               </div>
               <h3 className="text-lg font-bold mb-2">Contatti</h3>
@@ -260,6 +245,21 @@ const Index = () => {
                   </p>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="pt-6">
+              <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center mb-4">
+                <MapPin className="w-6 h-6 text-accent" />
+              </div>
+              <h3 className="text-lg font-bold mb-2">Dove Siamo</h3>
+              <p className="text-sm text-muted-foreground">
+                {settings?.address || "Via Roma 1, 00100 Roma"}<br />
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(settings?.address || "Via Roma 1 Roma")}`} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">
+                  Vedi sulla mappa →
+                </a>
+              </p>
             </CardContent>
           </Card>
         </div>

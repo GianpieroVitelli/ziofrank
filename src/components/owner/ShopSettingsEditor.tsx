@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
+import { OpenHoursEditor } from "./OpenHoursEditor";
 
 interface ShopSettings {
   id: string;
@@ -59,6 +60,7 @@ export const ShopSettingsEditor = () => {
           phone: settings.phone,
           email_from: settings.email_from,
           social_links: settings.social_links,
+          open_hours: settings.open_hours,
         })
         .eq("id", settings.id);
 
@@ -185,6 +187,11 @@ export const ShopSettingsEditor = () => {
               </div>
             </div>
           </div>
+
+          <OpenHoursEditor
+            openHours={settings.open_hours}
+            onChange={(openHours) => setSettings({ ...settings, open_hours: openHours })}
+          />
 
           <div className="flex justify-end pt-4">
             <Button onClick={handleSave} disabled={saving}>

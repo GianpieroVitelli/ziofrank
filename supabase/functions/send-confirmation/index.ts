@@ -3,6 +3,78 @@ import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
+// Helper function to format date for ICS (YYYYMMDDTHHMMSSZ)
+const formatICSDate = (date: Date): string => {
+  return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+};
+
+// Generate ICS file content
+const generateICS = (
+  startTime: Date,
+  endTime: Date,
+  summary: string,
+  description: string,
+  location: string,
+  organizerEmail: string,
+  attendeeEmail: string,
+  appointmentId: string
+): string => {
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Appointment System//NONSGML Event//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:REQUEST',
+    'BEGIN:VEVENT',
+    `UID:${appointmentId}@appointment.system`,
+    `DTSTAMP:${formatICSDate(new Date())}`,
+    `DTSTART:${formatICSDate(startTime)}`,
+    `DTEND:${formatICSDate(endTime)}`,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
+    `LOCATION:${location}`,
+    `ORGANIZER:MAILTO:${organizerEmail}`,
+    `ATTENDEE;RSVP=TRUE;CN=${attendeeEmail}:MAILTO:${attendeeEmail}`,
+    'STATUS:CONFIRMED',
+    'SEQUENCE:0',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT24H',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Reminder: Appointment tomorrow',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  
+  return icsContent;
+};
+
+// Generate calendar links
+const generateCalendarLinks = (
+  startTime: Date,
+  endTime: Date,
+  title: string,
+  description: string,
+  location: string
+) => {
+  const formatGoogleDate = (date: Date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+  
+  const startStr = formatGoogleDate(startTime);
+  const endStr = formatGoogleDate(endTime);
+  
+  const encodedTitle = encodeURIComponent(title);
+  const encodedDescription = encodeURIComponent(description);
+  const encodedLocation = encodeURIComponent(location);
+  
+  return {
+    google: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodedTitle}&dates=${startStr}/${endStr}&details=${encodedDescription}&location=${encodedLocation}`,
+    outlook: `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodedTitle}&startdt=${startTime.toISOString()}&enddt=${endTime.toISOString()}&body=${encodedDescription}&location=${encodedLocation}`,
+    office365: `https://outlook.office.com/calendar/0/deeplink/compose?subject=${encodedTitle}&startdt=${startTime.toISOString()}&enddt=${endTime.toISOString()}&body=${encodedDescription}&location=${encodedLocation}`
+  };
+};
+
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -105,6 +177,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Format date and time
     const startTime = new Date(appointment.start_time);
+    const endTime = new Date(appointment.end_time);
     const dateStr = startTime.toLocaleDateString("it-IT", {
       weekday: "long",
       day: "numeric",
@@ -123,6 +196,27 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Email del cliente non disponibile");
     }
 
+    // Generate ICS file
+    const icsContent = generateICS(
+      startTime,
+      endTime,
+      `Appuntamento - ${shopName}`,
+      `Appuntamento presso ${shopName}\nData: ${dateStr}\nOrario: ${timeStr}\nIndirizzo: ${shopAddress}`,
+      shopAddress,
+      emailFrom,
+      clientEmail,
+      appointment_id
+    );
+
+    // Generate calendar links
+    const calendarLinks = generateCalendarLinks(
+      startTime,
+      endTime,
+      `Appuntamento - ${shopName}`,
+      `Appuntamento presso ${shopName}. Data: ${dateStr}, Orario: ${timeStr}`,
+      shopAddress
+    );
+
     // Send email to client (and BCC to shop)
     const emailResponse = await resend.emails.send({
       from: `${shopName} <${emailFrom}>`,
@@ -140,6 +234,17 @@ const handler = async (req: Request): Promise<Response> => {
             <p><strong>📅 Data:</strong> ${dateStr}</p>
             <p><strong>🕐 Orario:</strong> ${timeStr} (durata 30 minuti)</p>
             <p><strong>📍 Indirizzo:</strong> ${shopAddress}</p>
+          </div>
+
+          <div style="background-color: #e8f5e9; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <h3 style="margin-top: 0; color: #333;">📅 Aggiungi al Calendario</h3>
+            <p style="margin: 10px 0; color: #666; font-size: 14px;">Salva questo appuntamento nel tuo calendario preferito</p>
+            <div style="margin: 15px 0;">
+              <p style="margin: 10px 0;"><a href="${calendarLinks.google}" target="_blank" style="display: inline-block; background-color: #4285f4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Google Calendar</a></p>
+              <p style="margin: 10px 0;"><a href="${calendarLinks.outlook}" target="_blank" style="display: inline-block; background-color: #0078d4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Outlook</a></p>
+              <p style="margin: 10px 0;"><a href="${calendarLinks.office365}" target="_blank" style="display: inline-block; background-color: #d83b01; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Office 365</a></p>
+            </div>
+            <p style="margin-top: 15px; color: #666; font-size: 12px;">Oppure scarica il file .ics allegato e aprilo con il tuo calendario (Apple Calendar, ecc.)</p>
           </div>
 
           <p><strong>Hai bisogno di modificare l'appuntamento?</strong></p>
@@ -163,6 +268,12 @@ const handler = async (req: Request): Promise<Response> => {
           </p>
         </div>
       `,
+      attachments: [
+        {
+          filename: 'appuntamento.ics',
+          content: btoa(icsContent),
+        },
+      ],
     });
 
     console.log("Confirmation email sent successfully:", emailResponse);

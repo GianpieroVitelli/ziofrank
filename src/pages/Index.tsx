@@ -204,7 +204,7 @@ const Index = () => {
                   <Clock className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold mb-3">Orari di Apertura</h3>
+                  <h3 className="text-lg font-bold mb-1">Orari di Apertura</h3>
                   <div className="text-sm text-muted-foreground space-y-1">
                     {isLoadingSettings ? (
                       <>
@@ -228,7 +228,7 @@ const Index = () => {
                   <Phone className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold mb-3">Contatti</h3>
+                  <h3 className="text-lg font-bold mb-1">Contatti</h3>
                   <div className="text-sm text-muted-foreground space-y-2">
                     <p className="flex items-center gap-2">
                       <Phone className="w-4 h-4 flex-shrink-0" />
@@ -263,7 +263,7 @@ const Index = () => {
                   <MapPin className="w-6 h-6 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-bold mb-3">Dove Siamo</h3>
+                  <h3 className="text-lg font-bold mb-1">Dove Siamo</h3>
                   <p className="text-sm text-muted-foreground">
                     {settings?.address || "Via Roma 1, 00100 Roma"}
                   </p>

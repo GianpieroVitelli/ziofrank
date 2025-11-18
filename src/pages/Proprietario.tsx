@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar, CalendarClock } from "lucide-react";
+import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar, CalendarClock, List } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { CalendarManager } from "@/components/owner/CalendarManager";
 import { ShopSettingsEditor } from "@/components/owner/ShopSettingsEditor";
@@ -83,7 +83,7 @@ const Proprietario = () => {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("appointments")}>
                   <CardHeader>
-                    <CalendarDays className="w-12 h-12 mb-4 text-primary" />
+                    <List className="w-12 h-12 mb-4 text-primary" />
                     <CardTitle>Appuntamenti</CardTitle>
                     <CardDescription>
                       Visualizza tutti gli appuntamenti prenotati in ordine cronologico.

@@ -147,7 +147,7 @@ export const CustomerAppointmentsDialog = ({ customerId, customerName }: Custome
                   >
                     <CardContent className="pt-4 pb-4">
                       <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Calendar className={`w-4 h-4 ${isPast ? 'text-muted-foreground' : 'text-primary'}`} />
                             <span className={`font-medium text-sm ${isPast ? 'text-muted-foreground' : 'text-foreground'}`}>

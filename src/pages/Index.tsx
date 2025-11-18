@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Scissors, Clock, MapPin, Phone, Mail, Megaphone, Instagram } from "lucide-react";
+import { Scissors, Clock, MapPin, Phone, Mail, Megaphone, Instagram, Pin } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -81,7 +81,9 @@ const Index = () => {
       setIsLoadingSettings(false);
     }
   };
-  const featuredNews = news.find(n => n.is_featured);
+  const featuredNews = news.filter(n => n.is_featured);
+  const regularNews = news.filter(n => !n.is_featured);
+  const displayedNews = [...featuredNews, ...regularNews].slice(0, 6);
   
   const formatOpenHours = () => {
     if (!settings?.open_hours) return null;
@@ -178,7 +180,16 @@ const Index = () => {
       {news.length > 0 && <section className="container mx-auto px-4 py-6">
           <h2 className="text-3xl font-bold mb-8 text-center">Notizie e Avvisi</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {news.slice(0, 6).map(item => <Card key={item.id} className="hover:shadow-lg transition-shadow bg-accent/15 border-accent/20 h-full flex flex-col">
+            {displayedNews.map(item => <Card key={item.id} className={`hover:shadow-lg transition-shadow h-full flex flex-col relative ${
+              item.is_featured 
+                ? "bg-accent/20 border-accent border-2" 
+                : "bg-accent/15 border-accent/20"
+            }`}>
+                {item.is_featured && (
+                  <div className="absolute top-3 right-3 z-10">
+                    <Pin className="w-5 h-5 text-accent" />
+                  </div>
+                )}
                 <CardContent className="p-6 flex flex-col flex-1">
                   <h3 className="text-lg font-bold mb-3">{item.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-3 flex-1">

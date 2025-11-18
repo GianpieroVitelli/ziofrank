@@ -118,7 +118,7 @@ export const AppointmentsList = () => {
             />
             <label 
               htmlFor="show-canceled" 
-              className="text-xs text-destructive cursor-pointer select-none"
+              className="text-xs text-muted-foreground cursor-pointer select-none"
             >
               Mostra appuntamenti cancellati
             </label>

@@ -81,19 +81,6 @@ const Proprietario = () => {
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("appointments")}>
-                  <CardHeader>
-                    <List className="w-12 h-12 mb-4 text-primary" />
-                    <CardTitle>Appuntamenti</CardTitle>
-                    <CardDescription>
-                      Visualizza tutti gli appuntamenti prenotati in ordine cronologico.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">Vedi Appuntamenti</Button>
-                  </CardContent>
-                </Card>
-
                 <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("calendar")}>
                   <CardHeader>
                     <CalendarDays className="w-12 h-12 mb-4 text-primary" />
@@ -117,6 +104,19 @@ const Proprietario = () => {
                   </CardHeader>
                   <CardContent>
                     <Button className="w-full" variant="outline">Gestisci Orari</Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("appointments")}>
+                  <CardHeader>
+                    <List className="w-12 h-12 mb-4 text-primary" />
+                    <CardTitle>Appuntamenti</CardTitle>
+                    <CardDescription>
+                      Visualizza tutti gli appuntamenti prenotati in ordine cronologico.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full">Vedi Appuntamenti</Button>
                   </CardContent>
                 </Card>
 

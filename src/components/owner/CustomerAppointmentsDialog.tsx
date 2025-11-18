@@ -159,7 +159,7 @@ export const CustomerAppointmentsDialog = ({ customerId, customerName }: Custome
                             {appointment.is_bonus && (
                               <Badge variant="outline" className="bg-accent/20">BONUS</Badge>
                             )}
-                            {isPast && appointment.status === "CONFIRMED" && (
+                            {isPast && (
                               <Badge variant="secondary" className="text-xs">Passato</Badge>
                             )}
                           </div>

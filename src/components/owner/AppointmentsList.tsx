@@ -76,9 +76,28 @@ export const AppointmentsList = () => {
     // 2. Filtro per status cancellato
     if (!showCanceled && apt.status === "CANCELED") return false;
     
-    // 3. Filtro per nome cliente (se c'è una ricerca attiva)
+    // 3. Filtro per ricerca multi-campo (se c'è una ricerca attiva)
     if (hasSearchQuery) {
-      const matchesSearch = apt.client_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const query = searchQuery.toLowerCase();
+      const startDate = new Date(apt.start_time);
+      
+      // Formatta la data in vari modi per la ricerca
+      const fullDate = format(startDate, "EEEE d MMMM yyyy", { locale: it });
+      const shortDate = format(startDate, "dd/MM/yyyy", { locale: it });
+      const dayMonth = format(startDate, "d MMMM", { locale: it });
+      const monthYear = format(startDate, "MMMM yyyy", { locale: it });
+      const year = format(startDate, "yyyy", { locale: it });
+      
+      const matchesSearch = 
+        apt.client_name?.toLowerCase().includes(query) ||
+        apt.client_phone?.toLowerCase().includes(query) ||
+        apt.client_email?.toLowerCase().includes(query) ||
+        fullDate.toLowerCase().includes(query) ||
+        shortDate.includes(query) ||
+        dayMonth.toLowerCase().includes(query) ||
+        monthYear.toLowerCase().includes(query) ||
+        year.includes(query);
+        
       if (!matchesSearch) return false;
     }
     
@@ -102,7 +121,7 @@ export const AppointmentsList = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Cerca per nome cliente..."
+            placeholder="Cerca per nome, email, telefono o data..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"

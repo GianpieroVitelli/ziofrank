@@ -15,8 +15,6 @@ const generateICS = (
   summary: string,
   description: string,
   location: string,
-  organizerEmail: string,
-  attendeeEmail: string,
   appointmentId: string
 ): string => {
   const icsContent = [
@@ -24,7 +22,7 @@ const generateICS = (
     'VERSION:2.0',
     'PRODID:-//Appointment System//NONSGML Event//EN',
     'CALSCALE:GREGORIAN',
-    'METHOD:REQUEST',
+    'METHOD:PUBLISH',
     'BEGIN:VEVENT',
     `UID:${appointmentId}@appointment.system`,
     `DTSTAMP:${formatICSDate(new Date())}`,
@@ -33,8 +31,6 @@ const generateICS = (
     `SUMMARY:${summary}`,
     `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
     `LOCATION:${location}`,
-    `ORGANIZER:MAILTO:${organizerEmail}`,
-    `ATTENDEE;RSVP=TRUE;CN=${attendeeEmail}:MAILTO:${attendeeEmail}`,
     'STATUS:CONFIRMED',
     'SEQUENCE:0',
     'BEGIN:VALARM',
@@ -203,8 +199,6 @@ const handler = async (req: Request): Promise<Response> => {
       `Appuntamento - ${shopName}`,
       `Appuntamento presso ${shopName}. Data: ${dateStr}. Orario: ${timeStr}. Indirizzo: ${shopAddress}`,
       shopAddress,
-      emailFrom,
-      clientEmail,
       appointment_id
     );
 

@@ -13,6 +13,7 @@ import { Search, Mail, Phone, Edit, Trash2, Save, X, Users, Camera, UserCircle, 
 import BottomNav from "@/components/BottomNav";
 import { formatDistanceToNow } from "date-fns";
 import { it } from "date-fns/locale";
+import { CustomerAppointmentsDialog } from "@/components/owner/CustomerAppointmentsDialog";
 
 interface Customer {
   id: string;
@@ -578,6 +579,14 @@ const Customers = () => {
                             Aggiungi nota
                           </Button>
                         )}
+
+                        {/* Visualizza appuntamenti */}
+                        <div className="pt-3 mt-3 border-t flex justify-end">
+                          <CustomerAppointmentsDialog 
+                            customerId={customer.id}
+                            customerName={customer.display_name}
+                          />
+                        </div>
 
                         {/* Blocco prenotazioni */}
                         <div className="pt-3 mt-3 border-t">

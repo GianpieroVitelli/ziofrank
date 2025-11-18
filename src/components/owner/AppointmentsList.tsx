@@ -7,11 +7,13 @@ import { Clock, User, Phone, Mail, Calendar, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface Appointment {
   id: string;
   start_time: string;
   end_time: string;
+  created_at: string;
   client_name: string | null;
   client_phone: string | null;
   client_email: string | null;
@@ -27,18 +29,22 @@ export const AppointmentsList = () => {
   const [showCanceled, setShowCanceled] = useState(false);
   const [showPast, setShowPast] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortMode, setSortMode] = useState<'appointment_time' | 'booking_time'>('appointment_time');
 
   useEffect(() => {
     loadAppointments();
-  }, []);
+  }, [sortMode]);
 
   const loadAppointments = async () => {
     try {
       setLoading(true);
+      const orderBy = sortMode === 'booking_time' ? 'created_at' : 'start_time';
+      const ascending = sortMode === 'appointment_time';
+      
       const { data, error } = await supabase
         .from("appointments")
         .select("*")
-        .order("start_time", { ascending: true });
+        .order(orderBy, { ascending });
 
       if (error) throw error;
       if (data) setAppointments(data);
@@ -116,6 +122,25 @@ export const AppointmentsList = () => {
 
   return (
     <div className="space-y-4">
+      <div className="flex gap-2 mb-4">
+        <Button
+          variant={sortMode === 'appointment_time' ? 'default' : 'outline'}
+          onClick={() => setSortMode('appointment_time')}
+          className="flex-1"
+        >
+          <Calendar className="mr-2 h-4 w-4" />
+          Mostra Tutti gli Appuntamenti
+        </Button>
+        <Button
+          variant={sortMode === 'booking_time' ? 'default' : 'outline'}
+          onClick={() => setSortMode('booking_time')}
+          className="flex-1"
+        >
+          <Clock className="mr-2 h-4 w-4" />
+          Cronologia Prenotazioni
+        </Button>
+      </div>
+
       <div className="space-y-3 mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />

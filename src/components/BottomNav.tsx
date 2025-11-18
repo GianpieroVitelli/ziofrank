@@ -66,7 +66,10 @@ const BottomNav = ({ isAuthenticated = false, isOwner = false }: BottomNavProps)
               <Button
                 key={item.path}
                 variant="ghost"
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  navigate(item.path);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className={`flex flex-col items-center justify-center h-full flex-1 gap-1 rounded-none hover:bg-accent/10 ${
                   isActive ? "text-accent" : "text-muted-foreground"
                 }`}

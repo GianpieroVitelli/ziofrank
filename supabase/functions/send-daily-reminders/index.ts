@@ -20,6 +20,17 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Parse request body to get days_ahead parameter
+    let daysAhead = 0; // default: reminder for today
+    try {
+      const body = await req.json();
+      daysAhead = body.days_ahead || 0;
+    } catch {
+      // No body or invalid JSON, use default
+    }
+
+    console.log(`Processing reminders for days_ahead=${daysAhead}`);
+
     // Get shop settings
     const { data: settings } = await supabase
       .from("shop_settings")
@@ -33,14 +44,18 @@ const handler = async (req: Request): Promise<Response> => {
     const timezone = settings?.timezone || "Europe/Rome";
     const websiteUrl = settings?.website_url || "https://tuosito.it";
 
-    // Get today's date in shop timezone
-    const today = new Date();
-    const startOfDay = new Date(today);
+    // Calculate target date based on days_ahead parameter
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + daysAhead);
+    
+    const startOfDay = new Date(targetDate);
     startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(today);
+    const endOfDay = new Date(targetDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Get all confirmed appointments for today
+    console.log(`Fetching appointments for ${targetDate.toDateString()}`);
+
+    // Get all confirmed appointments for target date
     const { data: appointments, error } = await supabase
       .from("appointments")
       .select("*, profiles(name, email)")
@@ -51,9 +66,10 @@ const handler = async (req: Request): Promise<Response> => {
     if (error) throw error;
 
     if (!appointments || appointments.length === 0) {
-      console.log("No appointments found for today");
+      const whenText = daysAhead === 0 ? "oggi" : `tra ${daysAhead} giorni`;
+      console.log(`No appointments found for ${whenText}`);
       return new Response(
-        JSON.stringify({ message: "Nessun appuntamento per oggi" }),
+        JSON.stringify({ message: `Nessun appuntamento per ${whenText}` }),
         {
           status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -80,22 +96,44 @@ const handler = async (req: Request): Promise<Response> => {
         minute: "2-digit",
       });
 
+      const isToday = daysAhead === 0;
+      const whenText = isToday ? "oggi" : "domani";
+      const emojiTitle = isToday ? "⏰ Promemoria Appuntamento" : "📅 Promemoria - Appuntamento Domani";
+      const backgroundColor = isToday ? "#fff3cd" : "#d1ecf1";
+      const borderColor = isToday ? "#ffc107" : "#17a2b8";
+      const textColor = isToday ? "#856404" : "#0c5460";
+
       try {
         const emailResponse = await resend.emails.send({
           from: `${shopName} <${emailFrom}>`,
           to: [clientEmail],
-          subject: `Promemoria - Appuntamento da ${shopName} oggi alle ${timeStr}`,
+          subject: isToday 
+            ? `Promemoria - Appuntamento da ${shopName} oggi alle ${timeStr}`
+            : `Promemoria - Appuntamento da ${shopName} domani alle ${timeStr}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #333;">⏰ Promemoria Appuntamento</h1>
+              <h1 style="color: #333;">${emojiTitle}</h1>
               <p>Ciao ${clientName},</p>
-              <p>Ti ricordiamo che hai un appuntamento <strong>oggi</strong> presso <strong>${shopName}</strong>!</p>
+              <p>Ti ricordiamo che hai un appuntamento <strong>${whenText}</strong> presso <strong>${shopName}</strong>!</p>
               
-              <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 20px 0;">
-                <h2 style="margin-top: 0; color: #856404;">Dettagli Appuntamento</h2>
+              <div style="background-color: ${backgroundColor}; border-left: 4px solid ${borderColor}; padding: 20px; margin: 20px 0;">
+                <h2 style="margin-top: 0; color: ${textColor};">Dettagli Appuntamento</h2>
+                <p><strong>📅 Data:</strong> ${startTime.toLocaleDateString('it-IT', { 
+                  weekday: 'long', 
+                  day: 'numeric', 
+                  month: 'long' 
+                })}</p>
                 <p><strong>🕐 Orario:</strong> ${timeStr} (durata 30 minuti)</p>
                 <p><strong>📍 Indirizzo:</strong> ${shopAddress}</p>
               </div>
+              
+              ${!isToday ? `
+              <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0; color: #856404; font-weight: bold;">
+                  💡 Riceverai un ulteriore promemoria domani mattina alle 8:00!
+                </p>
+              </div>
+              ` : ''}
 
               <p><strong>Ti aspettiamo!</strong></p>
               <p>Se hai bisogno di annullare, fallo dalla pagina "I Miei Appuntamenti" sul nostro sito.</p>
@@ -120,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
           `,
         });
 
-        console.log(`Reminder sent to ${clientEmail}:`, emailResponse);
+        console.log(`Reminder sent to ${clientEmail} for appointment ${appointment.id} (${whenText}):`, emailResponse);
 
         // Log email send
         await supabase.from("email_logs").insert({

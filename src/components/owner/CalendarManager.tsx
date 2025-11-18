@@ -263,6 +263,8 @@ export const CalendarManager = () => {
           note: customerNoteText.trim(),
           updated_by: user.id,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;

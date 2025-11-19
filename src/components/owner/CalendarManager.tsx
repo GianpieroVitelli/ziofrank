@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
-import { Plus, Edit, Trash2, Star, Mail, CalendarIcon, StickyNote, Save, X, Lock } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Mail, CalendarIcon, StickyNote, Save, X, Lock, Square } from "lucide-react";
 
 interface Appointment {
   id: string;
@@ -913,6 +913,24 @@ export const CalendarManager = () => {
                         
                         return null;
                       })}
+                  </div>
+
+                  {/* Legenda slot */}
+                  <div className="mt-6 pt-4 border-t">
+                    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Square className="w-3 h-3 fill-destructive text-destructive" />
+                        <span className="text-muted-foreground">Slot bloccato</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Square className="w-3 h-3 fill-emerald-500 text-emerald-500" />
+                        <span className="text-muted-foreground">Slot libero</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Square className="w-3 h-3 fill-muted text-muted" />
+                        <span className="text-muted-foreground">Slot prenotato</span>
+                      </div>
+                    </div>
                   </div>
                 </>
               );

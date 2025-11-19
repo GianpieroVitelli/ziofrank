@@ -20,12 +20,10 @@ const generateICS = (
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Appointment System//NONSGML Event//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',
-    `UID:${appointmentId}@appointment.system`,
-    `DTSTAMP:${formatICSDate(new Date())}`,
+    `UID:${appointmentId}`,
     `DTSTART:${formatICSDate(startTime)}`,
     `DTEND:${formatICSDate(endTime)}`,
     `SUMMARY:${summary}`,

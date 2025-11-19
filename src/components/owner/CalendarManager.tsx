@@ -742,7 +742,7 @@ export const CalendarManager = () => {
                           return (
                             <div
                               key={`free-${index}`}
-                              className="p-3 rounded-lg border bg-muted/20 border-muted"
+                              className="p-3 rounded-lg border bg-muted border-muted"
                             >
                               <div className="flex items-center justify-between gap-3">
                                 <div className="flex-1">

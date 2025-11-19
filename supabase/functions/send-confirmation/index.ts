@@ -263,6 +263,16 @@ const handler = async (req: Request): Promise<Response> => {
             <p style="margin: 0; color: #333;">Per effettuare una prenotazione o modificarne una già esistente accedi alla piattaforma dal seguente link:</p>
             <p style="margin: 10px 0 0 0;"><a href="${websiteUrl}" style="color: #2563eb; font-weight: bold;">${websiteUrl}</a></p>
           </div>
+
+          <!-- BOX ROSSO AVVISO 24 ORE -->
+          <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; color: #991b1b; font-weight: bold; font-size: 15px;">
+              ⚠️ IMPORTANTE: Non è possibile annullare o modificare l'appuntamento se mancano meno di 24 ore dall'appuntamento.
+            </p>
+            <p style="margin: 10px 0 0 0; color: #991b1b; font-size: 14px;">
+              Per urgenze contatta direttamente il negozio.
+            </p>
+          </div>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
             <p style="color: #666; font-size: 14px;">

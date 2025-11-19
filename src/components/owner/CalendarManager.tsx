@@ -599,6 +599,37 @@ export const CalendarManager = () => {
       }
     });
     
+    // Aggiungi slot per appuntamenti che hanno orari non standard
+    // (tipicamente appuntamenti bonus)
+    appointments.forEach(apt => {
+      const aptStart = toZonedTime(new Date(apt.start_time), timezone);
+      const timeString = format(aptStart, "HH:mm");
+      
+      // Controlla se questo appuntamento è già incluso in uno slot esistente
+      const isIncluded = slots.some(slot => 
+        slot.type === "appointment" && 
+        slot.appointments?.some(a => a.id === apt.id)
+      );
+      
+      if (!isIncluded) {
+        // Questo appuntamento ha un orario non standard, aggiungilo
+        slots.push({
+          time: timeString,
+          type: "appointment",
+          appointments: [apt]
+        });
+      }
+    });
+
+    // Ordina tutti gli slot cronologicamente
+    slots.sort((a, b) => {
+      const [aHours, aMinutes] = a.time.split(':').map(Number);
+      const [bHours, bMinutes] = b.time.split(':').map(Number);
+      const aTotal = aHours * 60 + aMinutes;
+      const bTotal = bHours * 60 + bMinutes;
+      return aTotal - bTotal;
+    });
+    
     return slots;
   };
 

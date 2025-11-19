@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
-import { Plus, Edit, Trash2, Star, Mail, CalendarIcon, StickyNote, Save, X } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Mail, CalendarIcon, StickyNote, Save, X, Lock } from "lucide-react";
 
 interface Appointment {
   id: string;
@@ -36,6 +36,13 @@ interface CustomerNote {
   updated_at: string;
 }
 
+interface TimeSlot {
+  time: string;
+  type: "appointment" | "free" | "blocked";
+  appointment?: Appointment;
+  blockId?: string;
+}
+
 export const CalendarManager = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -55,6 +62,8 @@ export const CalendarManager = () => {
   const [customerSearchResults, setCustomerSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [shopSettings, setShopSettings] = useState<any>(null);
+  const [slotBlocks, setSlotBlocks] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
@@ -66,10 +75,29 @@ export const CalendarManager = () => {
   const timezone = "Europe/Rome";
 
   useEffect(() => {
+    loadShopSettings();
+  }, []);
+
+  useEffect(() => {
     if (selectedDate) {
       loadAppointments(selectedDate);
     }
   }, [selectedDate]);
+
+  const loadShopSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("shop_settings")
+        .select("open_hours, timezone")
+        .single();
+      
+      if (error) throw error;
+      setShopSettings(data);
+    } catch (error) {
+      console.error("Error loading shop settings:", error);
+      toast.error("Errore nel caricamento delle impostazioni");
+    }
+  };
 
   const loadAppointments = async (date: Date) => {
     try {
@@ -106,6 +134,14 @@ export const CalendarManager = () => {
         });
         setCustomerNotes(notesMap);
       }
+
+      // Load slot blocks for the selected day
+      const { data: blocksData } = await supabase
+        .from("slot_blocks")
+        .select("*")
+        .eq("day", format(date, "yyyy-MM-dd"));
+
+      setSlotBlocks(blocksData || []);
     } catch (error: any) {
       console.error("Error loading appointments:", error);
       toast.error("Errore nel caricamento degli appuntamenti");
@@ -405,6 +441,145 @@ export const CalendarManager = () => {
     setDialogOpen(true);
   };
 
+  const openNewDialogWithTime = (time: string) => {
+    if (!selectedDate) return;
+    
+    setEditingAppointment(null);
+    setSelectedCustomer(null);
+    setCustomerSearchResults([]);
+    setShowCustomerDropdown(false);
+    setFormData({
+      date: format(selectedDate, "yyyy-MM-dd"),
+      time: time,
+      client_name: "",
+      client_email: "",
+      client_phone: "",
+      is_bonus: false,
+    });
+    setCustomerNoteText("");
+    setIsEditingNote(false);
+    setDialogOpen(true);
+  };
+
+  const handleBlockSlot = async (time: string) => {
+    if (!selectedDate) return;
+    
+    try {
+      const [hours, minutes] = time.split(":").map(Number);
+      const startTime = `${time}:00`;
+      
+      const endMinute = (minutes + 45) % 60;
+      const endHour = hours + Math.floor((minutes + 45) / 60);
+      const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}:00`;
+      
+      const { error } = await supabase
+        .from("slot_blocks")
+        .insert({
+          day: format(selectedDate, "yyyy-MM-dd"),
+          start_time: startTime,
+          end_time: endTime,
+        });
+      
+      if (error) throw error;
+      
+      toast.success("Slot bloccato con successo");
+      loadAppointments(selectedDate);
+    } catch (error) {
+      console.error("Error blocking slot:", error);
+      toast.error("Errore nel blocco dello slot");
+    }
+  };
+
+  const handleUnblockSlot = async (blockId: string) => {
+    try {
+      const { error } = await supabase
+        .from("slot_blocks")
+        .delete()
+        .eq("id", blockId);
+      
+      if (error) throw error;
+      
+      toast.success("Slot sbloccato con successo");
+      if (selectedDate) {
+        loadAppointments(selectedDate);
+      }
+    } catch (error) {
+      console.error("Error unblocking slot:", error);
+      toast.error("Errore nello sblocco dello slot");
+    }
+  };
+
+  const generateTimeSlots = (date: Date): TimeSlot[] => {
+    if (!shopSettings) return [];
+    
+    const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+    const dayName = dayNames[date.getDay()];
+    
+    const openHours = shopSettings.open_hours[dayName] || [];
+    if (openHours.length === 0) {
+      return [];
+    }
+
+    const slots: TimeSlot[] = [];
+    
+    openHours.forEach((range: [string, string]) => {
+      const [startHour, endHour] = range;
+      const [startH, startM] = startHour.split(":").map(Number);
+      const [endH, endM] = endHour.split(":").map(Number);
+      
+      let currentHour = startH;
+      let currentMin = startM;
+      
+      const endTotalMinutes = endH * 60 + endM;
+      
+      while (currentHour * 60 + currentMin < endTotalMinutes) {
+        const timeString = `${currentHour.toString().padStart(2, "0")}:${currentMin.toString().padStart(2, "0")}`;
+        
+        const appointment = appointments.find(apt => {
+          const aptStart = toZonedTime(new Date(apt.start_time), timezone);
+          return format(aptStart, "HH:mm") === timeString;
+        });
+        
+        if (appointment) {
+          slots.push({
+            time: timeString,
+            type: "appointment",
+            appointment
+          });
+        } else {
+          const block = slotBlocks.find(block => {
+            const blockStart = block.start_time.substring(0, 5);
+            const blockEnd = block.end_time.substring(0, 5);
+            return timeString >= blockStart && timeString < blockEnd;
+          });
+          
+          if (block) {
+            if (!slots.find(s => s.blockId === block.id)) {
+              slots.push({
+                time: timeString,
+                type: "blocked",
+                blockId: block.id
+              });
+            }
+          } else {
+            slots.push({
+              time: timeString,
+              type: "free"
+            });
+          }
+        }
+        
+        currentMin += 45;
+        if (currentMin >= 60) {
+          currentMin -= 60;
+          currentHour += 1;
+        }
+      }
+    });
+    
+    return slots;
+  };
+
   const resetForm = () => {
     setFormData({
       date: "",
@@ -454,92 +629,187 @@ export const CalendarManager = () => {
           <CardContent className="overflow-hidden">
             {loading ? (
               <div className="text-center py-8 text-muted-foreground">Caricamento...</div>
-            ) : appointments.length === 0 ? (
-              <div className="text-center py-12">
-                <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">Nessun appuntamento per questa data</p>
+            ) : !shopSettings ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Caricamento impostazioni negozio...
               </div>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 mb-4">
-                  <Checkbox 
-                    id="show-canceled-calendar" 
-                    checked={showCanceled}
-                    onCheckedChange={(checked) => setShowCanceled(checked === true)}
-                  />
-                  <label 
-                    htmlFor="show-canceled-calendar" 
-                    className="text-xs text-destructive cursor-pointer select-none"
-                  >
-                    Mostra appuntamenti cancellati
-                  </label>
-                </div>
-                <div className="space-y-3">
-                {appointments
-                  .filter(apt => showCanceled || apt.status !== "CANCELED")
-                  .map((apt) => {
-                  const startTime = toZonedTime(new Date(apt.start_time), timezone);
-                  return (
-                    <div
-                      key={apt.id}
-                      className={`p-3 sm:p-4 rounded-lg border ${
-                        apt.is_bonus
-                          ? "bg-accent/10 border-accent"
-                          : apt.status === "CANCELED"
-                          ? "bg-destructive/10 border-destructive"
-                          : "bg-card"
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-sm sm:text-base break-words">
-                              {format(startTime, "HH:mm")} - {apt.client_name || "Cliente walk-in"}
-                            </p>
-                            {apt.is_bonus && <Star className="w-4 h-4 text-accent flex-shrink-0" fill="currentColor" />}
-                          </div>
-                          {apt.client_email && (
-                            <p className="text-xs sm:text-sm text-muted-foreground break-all">{apt.client_email}</p>
-                          )}
-                          {apt.client_phone && (
-                            <p className="text-xs sm:text-sm text-muted-foreground">{apt.client_phone}</p>
-                          )}
-                          {apt.user_id && customerNotes[apt.user_id] && (
-                            <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words bg-muted/30 px-2 py-1 rounded">
-                              {customerNotes[apt.user_id].note}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex gap-2 flex-wrap sm:flex-nowrap flex-shrink-0">
-                          <Button size="sm" variant="outline" onClick={() => openEditDialog(apt)} className="flex-1 sm:flex-none">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          {apt.status !== "CANCELED" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleCancel(apt.id)}
-                              className="flex-1 sm:flex-none text-xs sm:text-sm"
-                            >
-                              Annulla
-                            </Button>
-                          )}
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(apt.id)}
-                            className="flex-1 sm:flex-none"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
+            ) : (() => {
+              const timeSlots = generateTimeSlots(selectedDate!);
+              
+              if (timeSlots.length === 0) {
+                return (
+                  <div className="text-center py-12">
+                    <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">Negozio chiuso in questo giorno</p>
+                  </div>
+                );
+              }
+              
+              return (
+                <>
+                  {appointments.some(apt => apt.status === "CANCELED") && (
+                    <div className="flex items-center gap-2 mb-4">
+                      <Checkbox 
+                        id="show-canceled-calendar" 
+                        checked={showCanceled}
+                        onCheckedChange={(checked) => setShowCanceled(checked === true)}
+                      />
+                      <label 
+                        htmlFor="show-canceled-calendar" 
+                        className="text-xs text-destructive cursor-pointer select-none"
+                      >
+                        Mostra appuntamenti cancellati
+                      </label>
                     </div>
-                  );
-                })}
-              </div>
-              </>
-            )}
+                  )}
+                  
+                  <div className="space-y-2">
+                    {timeSlots
+                      .filter(slot => {
+                        if (slot.type === "appointment" && slot.appointment) {
+                          return showCanceled || slot.appointment.status !== "CANCELED";
+                        }
+                        return true;
+                      })
+                      .map((slot, index) => {
+                        if (slot.type === "appointment" && slot.appointment) {
+                          const apt = slot.appointment;
+                          const startTime = toZonedTime(new Date(apt.start_time), timezone);
+                          
+                          return (
+                            <div
+                              key={`apt-${apt.id}`}
+                              className={`p-3 sm:p-4 rounded-lg border ${
+                                apt.is_bonus
+                                  ? "bg-accent/10 border-accent"
+                                  : apt.status === "CANCELED"
+                                  ? "bg-destructive/10 border-destructive"
+                                  : "bg-card"
+                              }`}
+                            >
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="font-semibold text-sm sm:text-base break-words">
+                                      {format(startTime, "HH:mm")} - {apt.client_name || "Cliente walk-in"}
+                                    </p>
+                                    {apt.is_bonus && <Star className="w-4 h-4 text-accent flex-shrink-0" fill="currentColor" />}
+                                    {apt.status === "CANCELED" && (
+                                      <span className="text-xs text-destructive font-semibold">CANCELLATO</span>
+                                    )}
+                                  </div>
+                                  {apt.client_email && (
+                                    <p className="text-xs sm:text-sm text-muted-foreground break-all">{apt.client_email}</p>
+                                  )}
+                                  {apt.client_phone && (
+                                    <p className="text-xs sm:text-sm text-muted-foreground">{apt.client_phone}</p>
+                                  )}
+                                  {apt.user_id && customerNotes[apt.user_id] && (
+                                    <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words bg-muted/30 px-2 py-1 rounded">
+                                      {customerNotes[apt.user_id].note}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex gap-2 flex-wrap sm:flex-nowrap flex-shrink-0">
+                                  <Button size="sm" variant="outline" onClick={() => openEditDialog(apt)} className="flex-1 sm:flex-none">
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  {apt.status !== "CANCELED" && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleCancel(apt.id)}
+                                      className="flex-1 sm:flex-none text-xs sm:text-sm"
+                                    >
+                                      Annulla
+                                    </Button>
+                                  )}
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleDelete(apt.id)}
+                                    className="flex-1 sm:flex-none"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        if (slot.type === "free") {
+                          return (
+                            <div
+                              key={`free-${index}`}
+                              className="p-3 rounded-lg border bg-muted/20 border-muted"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-muted-foreground">
+                                    {slot.time}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">Slot libero</p>
+                                </div>
+                                <div className="flex gap-2 items-center">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleBlockSlot(slot.time)}
+                                    className="h-8 w-8 p-0"
+                                    title="Blocca slot"
+                                  >
+                                    <Lock className="w-4 h-4 text-muted-foreground" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => openNewDialogWithTime(slot.time)}
+                                    className="gap-1"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Aggiungi appuntamento
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        if (slot.type === "blocked") {
+                          return (
+                            <div
+                              key={`blocked-${slot.blockId}`}
+                              className="p-3 rounded-lg border bg-destructive/5 border-destructive/20"
+                            >
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex-1 flex items-center gap-2">
+                                  <Lock className="w-4 h-4 text-destructive" />
+                                  <div>
+                                    <p className="text-sm font-medium text-destructive">
+                                      {slot.time}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">Slot bloccato</p>
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleUnblockSlot(slot.blockId!)}
+                                  className="text-xs"
+                                >
+                                  Sblocca
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        return null;
+                      })}
+                  </div>
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>

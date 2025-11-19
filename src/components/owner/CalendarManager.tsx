@@ -39,7 +39,7 @@ interface CustomerNote {
 interface TimeSlot {
   time: string;
   type: "appointment" | "free" | "blocked";
-  appointment?: Appointment;
+  appointments?: Appointment[];
   blockId?: string;
 }
 
@@ -535,18 +535,40 @@ export const CalendarManager = () => {
       while (currentHour * 60 + currentMin < endTotalMinutes) {
         const timeString = `${currentHour.toString().padStart(2, "0")}:${currentMin.toString().padStart(2, "0")}`;
         
-        const appointment = appointments.find(apt => {
+        // Trova TUTTI gli appuntamenti in questo slot (non solo il primo)
+        const appointmentsInSlot = appointments.filter(apt => {
           const aptStart = toZonedTime(new Date(apt.start_time), timezone);
           return format(aptStart, "HH:mm") === timeString;
         });
         
-        if (appointment) {
+        if (appointmentsInSlot.length > 0) {
+          // Ci sono appuntamenti in questo slot
+          const hasNonBonusAppointment = appointmentsInSlot.some(apt => !apt.is_bonus);
+          
           slots.push({
             time: timeString,
             type: "appointment",
-            appointment
+            appointments: appointmentsInSlot
           });
+          
+          // Se ci sono solo appuntamenti bonus (nessun appuntamento normale),
+          // aggiungi anche uno slot "free" per permettere di prenotare
+          if (!hasNonBonusAppointment) {
+            const block = slotBlocks.find(block => {
+              const blockStart = block.start_time.substring(0, 5);
+              const blockEnd = block.end_time.substring(0, 5);
+              return timeString >= blockStart && timeString < blockEnd;
+            });
+            
+            if (!block) {
+              slots.push({
+                time: timeString,
+                type: "free"
+              });
+            }
+          }
         } else {
+          // Nessun appuntamento, controlla se è bloccato o libero
           const block = slotBlocks.find(block => {
             const blockStart = block.start_time.substring(0, 5);
             const blockEnd = block.end_time.substring(0, 5);
@@ -666,76 +688,94 @@ export const CalendarManager = () => {
                   <div className="space-y-2">
                     {timeSlots
                       .filter(slot => {
-                        if (slot.type === "appointment" && slot.appointment) {
-                          return showCanceled || slot.appointment.status !== "CANCELED";
+                        if (slot.type === "appointment" && slot.appointments) {
+                          // Mostra lo slot se almeno un appuntamento non è cancellato
+                          return slot.appointments.some(apt => 
+                            showCanceled || apt.status !== "CANCELED"
+                          );
                         }
                         return true;
                       })
                       .map((slot, index) => {
-                        if (slot.type === "appointment" && slot.appointment) {
-                          const apt = slot.appointment;
-                          const startTime = toZonedTime(new Date(apt.start_time), timezone);
+                        if (slot.type === "appointment" && slot.appointments) {
+                          // Ordina gli appuntamenti per orario e bonus status
+                          const sortedAppointments = [...slot.appointments]
+                            .filter(apt => showCanceled || apt.status !== "CANCELED")
+                            .sort((a, b) => {
+                              const timeA = new Date(a.start_time).getTime();
+                              const timeB = new Date(b.start_time).getTime();
+                              if (timeA !== timeB) return timeA - timeB;
+                              // Se hanno lo stesso orario, metti prima gli appuntamenti normali
+                              if (a.is_bonus && !b.is_bonus) return 1;
+                              if (!a.is_bonus && b.is_bonus) return -1;
+                              return 0;
+                            });
                           
-                          return (
-                            <div
-                              key={`apt-${apt.id}`}
-                              className={`p-3 sm:p-4 rounded-lg border ${
-                                apt.is_bonus
-                                  ? "bg-accent/10 border-accent"
-                                  : apt.status === "CANCELED"
-                                  ? "bg-destructive/10 border-destructive"
-                                  : "bg-card"
-                              }`}
-                            >
-                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap">
-                                    <p className="font-semibold text-sm sm:text-base break-words">
-                                      {format(startTime, "HH:mm")} - {apt.client_name || "Cliente walk-in"}
-                                    </p>
-                                    {apt.is_bonus && <Star className="w-4 h-4 text-accent flex-shrink-0" fill="currentColor" />}
-                                    {apt.status === "CANCELED" && (
-                                      <span className="text-xs text-destructive font-semibold">CANCELLATO</span>
+                          // Renderizza TUTTI gli appuntamenti nello slot
+                          return sortedAppointments.map((apt) => {
+                            const startTime = toZonedTime(new Date(apt.start_time), timezone);
+                            
+                            return (
+                              <div
+                                key={`apt-${apt.id}`}
+                                className={`p-3 sm:p-4 rounded-lg border ${
+                                  apt.is_bonus
+                                    ? "bg-accent/10 border-accent"
+                                    : apt.status === "CANCELED"
+                                    ? "bg-destructive/10 border-destructive"
+                                    : "bg-card"
+                                }`}
+                              >
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className="font-semibold text-sm sm:text-base break-words">
+                                        {format(startTime, "HH:mm")} - {apt.client_name || "Cliente walk-in"}
+                                      </p>
+                                      {apt.is_bonus && <Star className="w-4 h-4 text-accent flex-shrink-0" fill="currentColor" />}
+                                      {apt.status === "CANCELED" && (
+                                        <span className="text-xs text-destructive font-semibold">CANCELLATO</span>
+                                      )}
+                                    </div>
+                                    {apt.client_email && (
+                                      <p className="text-xs sm:text-sm text-muted-foreground break-all">{apt.client_email}</p>
+                                    )}
+                                    {apt.client_phone && (
+                                      <p className="text-xs sm:text-sm text-muted-foreground">{apt.client_phone}</p>
+                                    )}
+                                    {apt.user_id && customerNotes[apt.user_id] && (
+                                      <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words bg-muted/30 px-2 py-1 rounded">
+                                        {customerNotes[apt.user_id].note}
+                                      </p>
                                     )}
                                   </div>
-                                  {apt.client_email && (
-                                    <p className="text-xs sm:text-sm text-muted-foreground break-all">{apt.client_email}</p>
-                                  )}
-                                  {apt.client_phone && (
-                                    <p className="text-xs sm:text-sm text-muted-foreground">{apt.client_phone}</p>
-                                  )}
-                                  {apt.user_id && customerNotes[apt.user_id] && (
-                                    <p className="text-xs sm:text-sm text-muted-foreground mt-2 italic break-words bg-muted/30 px-2 py-1 rounded">
-                                      {customerNotes[apt.user_id].note}
-                                    </p>
-                                  )}
-                                </div>
-                                <div className="flex gap-2 flex-wrap sm:flex-nowrap flex-shrink-0">
-                                  <Button size="sm" variant="outline" onClick={() => openEditDialog(apt)} className="flex-1 sm:flex-none">
-                                    <Edit className="w-4 h-4" />
-                                  </Button>
-                                  {apt.status !== "CANCELED" && (
+                                  <div className="flex gap-2 flex-wrap sm:flex-nowrap flex-shrink-0">
+                                    <Button size="sm" variant="outline" onClick={() => openEditDialog(apt)} className="flex-1 sm:flex-none">
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    {apt.status !== "CANCELED" && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleCancel(apt.id)}
+                                        className="flex-1 sm:flex-none text-xs sm:text-sm"
+                                      >
+                                        Annulla
+                                      </Button>
+                                    )}
                                     <Button
                                       size="sm"
-                                      variant="outline"
-                                      onClick={() => handleCancel(apt.id)}
-                                      className="flex-1 sm:flex-none text-xs sm:text-sm"
+                                      variant="destructive"
+                                      onClick={() => handleDelete(apt.id)}
+                                      className="flex-1 sm:flex-none"
                                     >
-                                      Annulla
+                                      <Trash2 className="w-4 h-4" />
                                     </Button>
-                                  )}
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleDelete(apt.id)}
-                                    className="flex-1 sm:flex-none"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
+                            );
+                          });
                         }
                         
                         if (slot.type === "free") {

@@ -115,23 +115,25 @@ const Prenota = () => {
         }
       }
 
-      // Get existing appointments for this day
+      // Use RPC to get busy slots (bypasses RLS so all users see occupied slots)
       const startOfDay = new Date(zonedDate);
       startOfDay.setHours(0, 0, 0, 0);
-      const startOfDayUTC = fromZonedTime(startOfDay, timezone);
-      
-      const endOfDay = new Date(zonedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-      const endOfDayUTC = fromZonedTime(endOfDay, timezone);
-      
-      const {
-        data: appointments
-      } = await supabase.from("appointments").select("*").eq("status", "CONFIRMED").gte("start_time", startOfDayUTC.toISOString()).lte("start_time", endOfDayUTC.toISOString());
+      const dayString = format(startOfDay, 'yyyy-MM-dd');
+
+      const { data: busySlots, error: busySlotsError } = await supabase.rpc('get_busy_slots', {
+        p_day: dayString
+      });
+
+      if (busySlotsError) {
+        console.error("Errore nel caricamento degli slot occupati:", busySlotsError);
+        toast.error("Errore nel caricamento degli slot");
+        return;
+      }
 
       // Create set of booked slots
-      const bookedSlotsSet = new Set((appointments || []).map(apt => {
-        const aptTime = toZonedTime(new Date(apt.start_time), timezone);
-        return format(aptTime, "HH:mm");
+      const bookedSlotsSet = new Set((busySlots || []).map(slot => {
+        const slotTime = toZonedTime(new Date(slot.start_time), timezone);
+        return format(slotTime, "HH:mm");
       }));
 
       // Combine all slots with availability status

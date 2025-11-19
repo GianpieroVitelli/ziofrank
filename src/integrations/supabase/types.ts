@@ -398,6 +398,13 @@ export type Database = {
     }
     Functions: {
       cancel_appointment: { Args: { p_appointment_id: string }; Returns: Json }
+      get_busy_slots: {
+        Args: { p_day: string }
+        Returns: {
+          end_time: string
+          start_time: string
+        }[]
+      }
       get_customers: {
         Args: { search_query?: string; sort_order?: string }
         Returns: {

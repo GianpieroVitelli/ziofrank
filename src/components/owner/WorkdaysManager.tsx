@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
-import { LockIcon, UnlockIcon, CalendarX, CalendarCheck } from "lucide-react";
+import { LockIcon, UnlockIcon, CalendarX, CalendarCheck, Square } from "lucide-react";
 
 interface DayOverride {
   id: string;
@@ -462,41 +462,61 @@ export const WorkdaysManager = () => {
             {loading ? (
               <div className="text-center py-8">Caricamento...</div>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                {slots.map((slot) => (
-                  <Button
-                    key={slot.time}
-                    onClick={() => handleToggleSlotBlock(slot)}
-                    disabled={slot.status === "booked"}
-                    variant={
-                      slot.status === "booked"
-                        ? "outline"
-                        : slot.status === "blocked"
-                        ? "destructive"
-                        : "default"
-                    }
-                    className={
-                      slot.status === "booked"
-                        ? "opacity-50 cursor-not-allowed bg-muted"
-                        : slot.status === "blocked"
-                        ? "bg-destructive hover:bg-destructive/90"
-                        : "bg-green-600 hover:bg-green-700 text-white"
-                    }
-                    title={
-                      slot.status === "booked"
-                        ? "Slot prenotato"
-                        : slot.status === "blocked"
-                        ? "Clicca per sbloccare"
-                        : "Clicca per bloccare"
-                    }
-                  >
-                    {slot.time}
-                    {slot.status === "blocked" && (
-                      <LockIcon className="w-3 h-3 ml-1" />
-                    )}
-                  </Button>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                  {slots.map((slot) => (
+                    <Button
+                      key={slot.time}
+                      onClick={() => handleToggleSlotBlock(slot)}
+                      disabled={slot.status === "booked"}
+                      variant={
+                        slot.status === "booked"
+                          ? "outline"
+                          : slot.status === "blocked"
+                          ? "destructive"
+                          : "default"
+                      }
+                      className={
+                        slot.status === "booked"
+                          ? "opacity-50 cursor-not-allowed bg-muted"
+                          : slot.status === "blocked"
+                          ? "bg-destructive hover:bg-destructive/90"
+                          : "bg-green-600 hover:bg-green-700 text-white"
+                      }
+                      title={
+                        slot.status === "booked"
+                          ? "Slot prenotato"
+                          : slot.status === "blocked"
+                          ? "Clicca per sbloccare"
+                          : "Clicca per bloccare"
+                      }
+                    >
+                      {slot.time}
+                      {slot.status === "blocked" && (
+                        <LockIcon className="w-3 h-3 ml-1" />
+                      )}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Legenda slot */}
+                <div className="mt-6 pt-4 border-t">
+                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <Square className="w-3 h-3 fill-destructive text-destructive" />
+                      <span className="text-muted-foreground">Slot bloccato</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Square className="w-3 h-3 fill-emerald-500 text-emerald-500" />
+                      <span className="text-muted-foreground">Slot libero</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Square className="w-3 h-3 fill-muted text-muted" />
+                      <span className="text-muted-foreground">Slot prenotato</span>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

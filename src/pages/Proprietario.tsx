@@ -4,16 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar, CalendarClock, List } from "lucide-react";
+import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar, CalendarClock, List, Download } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { CalendarManager } from "@/components/owner/CalendarManager";
 import { ShopSettingsEditor } from "@/components/owner/ShopSettingsEditor";
 import { NewsManager } from "@/components/owner/NewsManager";
 import { AppointmentsList } from "@/components/owner/AppointmentsList";
+import { DataExport } from "@/components/owner/DataExport";
 const Proprietario = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news" | "appointments">("dashboard");
+  const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news" | "appointments" | "export">("dashboard");
 
   // Scroll to top when view changes
   useEffect(() => {
@@ -132,6 +133,21 @@ const Proprietario = () => {
                     <Button className="w-full" variant="outline">Modifica Impostazioni</Button>
                   </CardContent>
                 </Card>
+
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("export")}>
+                  <CardHeader>
+                    <Download className="w-12 h-12 mb-4 text-primary" />
+                    <CardTitle>Scarica Dati</CardTitle>
+                    <CardDescription>
+                      Esporta lista clienti e appuntamenti in Excel
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full" variant="outline">
+                      Esporta Dati
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
 
               <div className="mt-8">
@@ -167,6 +183,19 @@ const Proprietario = () => {
                 <h2 className="text-2xl font-bold mb-1">Tutti gli Appuntamenti</h2>
               </div>
               <AppointmentsList />
+            </>}
+
+          {activeView === "export" && <>
+              <div className="mb-4">
+                <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
+                  ← Torna al menù
+                </Button>
+                <h2 className="text-2xl font-bold mb-1">Scarica Dati</h2>
+                <p className="text-muted-foreground text-sm">
+                  Esporta i tuoi dati in formato Excel per analisi offline
+                </p>
+              </div>
+              <DataExport />
             </>}
         </div>
       </main>

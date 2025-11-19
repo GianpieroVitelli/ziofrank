@@ -58,12 +58,29 @@ const handler = async (req: Request): Promise<Response> => {
     // Get all confirmed appointments for target date
     const { data: appointments, error } = await supabase
       .from("appointments")
-      .select("*, profiles(name, email)")
+      .select("*")
       .eq("status", "CONFIRMED")
       .gte("start_time", startOfDay.toISOString())
       .lte("start_time", endOfDay.toISOString());
 
     if (error) throw error;
+
+    // Get all user profiles for the appointments
+    const userIds = appointments
+      ?.filter(a => a.user_id)
+      .map(a => a.user_id) || [];
+    
+    let profilesMap: Record<string, any> = {};
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, email")
+        .in("id", userIds);
+      
+      if (profiles) {
+        profilesMap = profiles.reduce((acc, p) => ({ ...acc, [p.id]: p }), {});
+      }
+    }
 
     if (!appointments || appointments.length === 0) {
       const whenText = daysAhead === 0 ? "oggi" : `tra ${daysAhead} giorni`;
@@ -82,8 +99,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send reminder to each client
     for (const appointment of appointments) {
-      const clientEmail = appointment.client_email || appointment.profiles?.email;
-      const clientName = appointment.client_name || appointment.profiles?.name || "Cliente";
+      const profile = appointment.user_id ? profilesMap[appointment.user_id] : null;
+      const clientEmail = appointment.client_email || profile?.email;
+      const clientName = appointment.client_name || profile?.name || "Cliente";
 
       if (!clientEmail) {
         console.log(`Skipping appointment ${appointment.id}: no email available`);
@@ -160,15 +178,27 @@ const handler = async (req: Request): Promise<Response> => {
 
         console.log(`Reminder sent to ${clientEmail} for appointment ${appointment.id} (${whenText}):`, emailResponse);
 
-        // Log email send
-        await supabase.from("email_logs").insert({
-          appointment_id: appointment.id,
-          type: "REMINDER",
-          recipient: clientEmail,
-          status: "sent",
-        });
-
-        emailsSent++;
+        // Check if Resend returned an error
+        if (emailResponse.error) {
+          // Resend API returned an error
+          await supabase.from("email_logs").insert({
+            appointment_id: appointment.id,
+            type: "REMINDER",
+            recipient: clientEmail,
+            status: "failed",
+            error_message: emailResponse.error.message || JSON.stringify(emailResponse.error),
+          });
+          emailsFailed++;
+        } else {
+          // Email sent successfully
+          await supabase.from("email_logs").insert({
+            appointment_id: appointment.id,
+            type: "REMINDER",
+            recipient: clientEmail,
+            status: "sent",
+          });
+          emailsSent++;
+        }
       } catch (emailError: any) {
         console.error(`Failed to send reminder to ${clientEmail}:`, emailError);
         
@@ -183,6 +213,9 @@ const handler = async (req: Request): Promise<Response> => {
 
         emailsFailed++;
       }
+
+      // Add delay to respect Resend rate limit (2 emails per second)
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     return new Response(

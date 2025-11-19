@@ -172,6 +172,32 @@ export const WorkdaysManager = () => {
     const dateStr = format(selectedDate, "yyyy-MM-dd");
 
     try {
+      // Controlla se ci sono appuntamenti confermati per questa giornata
+      const startOfDay = fromZonedTime(
+        new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0),
+        timezone
+      );
+      const endOfDay = fromZonedTime(
+        new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59),
+        timezone
+      );
+
+      const { data: confirmedAppointments, error: appointmentError } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("status", "CONFIRMED")
+        .gte("start_time", startOfDay.toISOString())
+        .lte("start_time", endOfDay.toISOString());
+
+      if (appointmentError) throw appointmentError;
+
+      // Se ci sono appuntamenti confermati, blocca la chiusura
+      if (confirmedAppointments && confirmedAppointments.length > 0) {
+        toast.error("Per chiudere la giornata annulla prima gli appuntamenti confermati");
+        return;
+      }
+
+      // Nessun appuntamento confermato, procedi con la chiusura
       const { error } = await supabase
         .from("day_overrides")
         .upsert({

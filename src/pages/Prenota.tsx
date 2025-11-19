@@ -122,7 +122,7 @@ const Prenota = () => {
       endOfDay.setHours(23, 59, 59, 999);
       const {
         data: appointments
-      } = await supabase.from("appointments").select("*").eq("status", "CONFIRMED").eq("is_bonus", false).gte("start_time", startOfDay.toISOString()).lte("start_time", endOfDay.toISOString());
+      } = await supabase.from("appointments").select("*").eq("status", "CONFIRMED").gte("start_time", startOfDay.toISOString()).lte("start_time", endOfDay.toISOString());
 
       // Create set of booked slots
       const bookedSlotsSet = new Set((appointments || []).map(apt => {
@@ -163,7 +163,7 @@ const Prenota = () => {
       // Check one more time if slot is still available (prevent race conditions)
       const {
         data: existingApt
-      } = await supabase.from("appointments").select("id").eq("status", "CONFIRMED").eq("is_bonus", false).gte("start_time", startTime.toISOString()).lt("start_time", endTime.toISOString()).maybeSingle();
+      } = await supabase.from("appointments").select("id").eq("status", "CONFIRMED").or(`and(start_time.lt.${endTime.toISOString()},end_time.gt.${startTime.toISOString()})`).maybeSingle();
       if (existingApt) {
         toast.error("Questo slot è stato appena prenotato. Ricarico gli slot disponibili...");
         await loadAvailableSlots(selectedDate);
@@ -214,7 +214,12 @@ const Prenota = () => {
       navigate("/miei-appuntamenti");
     } catch (error: any) {
       console.error("Booking error:", error);
-      toast.error(error.message || "Errore durante la prenotazione");
+      if (error.message?.includes('Slot non disponibile')) {
+        toast.error("Questo slot è stato appena prenotato da un altro utente. Ricarico gli slot...");
+        await loadAvailableSlots(selectedDate);
+      } else {
+        toast.error(error.message || "Errore durante la prenotazione");
+      }
     } finally {
       setBookingSlot(null);
       setSelectedSlot(null);

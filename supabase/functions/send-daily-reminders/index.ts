@@ -96,6 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     let emailsSent = 0;
     let emailsFailed = 0;
+    let emailsSkipped = 0;
 
     // Send reminder to each client
     for (const appointment of appointments) {
@@ -105,6 +106,28 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (!clientEmail) {
         console.log(`Skipping appointment ${appointment.id}: no email available`);
+        continue;
+      }
+
+      // Check if a reminder was already sent today for this appointment
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+
+      const { data: existingLogs } = await supabase
+        .from("email_logs")
+        .select("id")
+        .eq("appointment_id", appointment.id)
+        .eq("type", "REMINDER")
+        .eq("status", "sent")
+        .gte("sent_at", todayStart.toISOString())
+        .lte("sent_at", todayEnd.toISOString())
+        .limit(1);
+
+      if (existingLogs && existingLogs.length > 0) {
+        console.log(`Skipping appointment ${appointment.id}: reminder already sent today to ${clientEmail}`);
+        emailsSkipped++;
         continue;
       }
 
@@ -159,6 +182,13 @@ const handler = async (req: Request): Promise<Response> => {
               <div style="background-color: #f0f9ff; padding: 15px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 0; color: #333;">Per effettuare una prenotazione o modificarne una già esistente accedi alla piattaforma dal seguente link:</p>
                 <p style="margin: 10px 0 0 0;"><a href="${websiteUrl}" style="color: #2563eb; font-weight: bold;">${websiteUrl}</a></p>
+              </div>
+
+              <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 20px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 0; color: #991b1b; font-weight: bold; font-size: 15px;">
+                  ⚠️ IMPORTANTE: Non è possibile annullare o modificare l'appuntamento se mancano meno di 24 ore dall'appuntamento.<br>
+                  Per urgenze contatta direttamente il negozio.
+                </p>
               </div>
               
               <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
@@ -221,9 +251,10 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Reminder inviati: ${emailsSent}, Falliti: ${emailsFailed}`,
+        message: `Reminder inviati: ${emailsSent}, Falliti: ${emailsFailed}, Saltati (già inviati): ${emailsSkipped}`,
         sent: emailsSent,
         failed: emailsFailed,
+        skipped: emailsSkipped,
       }),
       {
         status: 200,

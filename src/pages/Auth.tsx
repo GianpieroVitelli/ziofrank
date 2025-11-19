@@ -16,6 +16,8 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -97,6 +99,27 @@ const Auth = () => {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+
+      toast.success("Email inviata! Controlla la tua casella per il link di reset.");
+      setIsResetMode(false);
+      setResetEmail("");
+    } catch (error: any) {
+      toast.error(error.message || "Errore durante l'invio dell'email");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 overflow-x-hidden w-full max-w-full">
       <div className="w-full max-w-md">
@@ -117,36 +140,79 @@ const Auth = () => {
           <TabsContent value="signin">
             <Card>
               <CardHeader>
-                <CardTitle>Accedi</CardTitle>
-                <CardDescription>Inserisci le tue credenziali per accedere</CardDescription>
+                <CardTitle>{isResetMode ? "Recupera Password" : "Accedi"}</CardTitle>
+                <CardDescription>
+                  {isResetMode 
+                    ? "Inserisci la tua email per ricevere il link di recupero"
+                    : "Inserisci le tue credenziali per accedere"
+                  }
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="tua@email.it"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Accesso in corso..." : "Accedi"}
-                  </Button>
-                </form>
+                {isResetMode ? (
+                  <form onSubmit={handlePasswordReset} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="reset-email">Email</Label>
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        placeholder="tua@email.it"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Invio in corso..." : "Invia link di recupero"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => {
+                        setIsResetMode(false);
+                        setResetEmail("");
+                      }}
+                    >
+                      Torna al login
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">Email</Label>
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        placeholder="tua@email.it"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Input
+                        id="signin-password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? "Accesso in corso..." : "Accedi"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="w-full text-sm"
+                      onClick={() => setIsResetMode(true)}
+                    >
+                      Password dimenticata?
+                    </Button>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

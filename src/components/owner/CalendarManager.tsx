@@ -46,6 +46,15 @@ export const CalendarManager = () => {
   const [customerNoteText, setCustomerNoteText] = useState("");
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [showCanceled, setShowCanceled] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+  } | null>(null);
+  const [customerSearchResults, setCustomerSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
@@ -105,6 +114,76 @@ export const CalendarManager = () => {
     }
   };
 
+  const searchCustomers = async (query: string) => {
+    if (!query || query.length < 2) {
+      setCustomerSearchResults([]);
+      setShowCustomerDropdown(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const { data, error } = await supabase.rpc("get_customers", {
+        search_query: query,
+        sort_order: "alpha"
+      });
+
+      if (error) throw error;
+      setCustomerSearchResults(data || []);
+      setShowCustomerDropdown(true);
+    } catch (error) {
+      console.error("Error searching customers:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectCustomer = async (customer: any) => {
+    setSelectedCustomer({
+      id: customer.id,
+      name: customer.display_name,
+      email: customer.email,
+      phone: customer.phone
+    });
+
+    setFormData({
+      ...formData,
+      client_name: customer.display_name,
+      client_email: customer.email,
+      client_phone: customer.phone || ""
+    });
+
+    const { data: noteData } = await supabase
+      .from("customer_notes")
+      .select("*")
+      .eq("user_id", customer.id)
+      .maybeSingle();
+
+    if (noteData) {
+      setCustomerNoteText(noteData.note);
+      setCustomerNotes({
+        ...customerNotes,
+        [customer.id]: noteData
+      });
+    } else {
+      setCustomerNoteText("");
+    }
+
+    setShowCustomerDropdown(false);
+  };
+
+  const handleDeselectCustomer = () => {
+    setSelectedCustomer(null);
+    setFormData({
+      ...formData,
+      client_name: "",
+      client_email: "",
+      client_phone: ""
+    });
+    setCustomerNoteText("");
+    setIsEditingNote(false);
+  };
+
   const handleSave = async () => {
     try {
       if (!formData.date || !formData.time) {
@@ -126,6 +205,7 @@ export const CalendarManager = () => {
         is_bonus: formData.is_bonus,
         status: "CONFIRMED" as const,
         created_by: "owner",
+        user_id: selectedCustomer ? selectedCustomer.id : null,
       };
 
       if (editingAppointment) {
@@ -222,6 +302,9 @@ export const CalendarManager = () => {
   const openEditDialog = (appointment: Appointment) => {
     const startTime = toZonedTime(new Date(appointment.start_time), timezone);
     setEditingAppointment(appointment);
+    setSelectedCustomer(null);
+    setCustomerSearchResults([]);
+    setShowCustomerDropdown(false);
     setFormData({
       date: format(startTime, "yyyy-MM-dd"),
       time: format(startTime, "HH:mm"),
@@ -305,6 +388,9 @@ export const CalendarManager = () => {
 
   const openNewDialog = () => {
     setEditingAppointment(null);
+    setSelectedCustomer(null);
+    setCustomerSearchResults([]);
+    setShowCustomerDropdown(false);
     const dateStr = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
     setFormData({
       date: dateStr,
@@ -314,6 +400,8 @@ export const CalendarManager = () => {
       client_phone: "",
       is_bonus: false,
     });
+    setCustomerNoteText("");
+    setIsEditingNote(false);
     setDialogOpen(true);
   };
 
@@ -486,14 +574,68 @@ export const CalendarManager = () => {
               </div>
             </div>
 
-            <div>
+            <div className="relative" data-customer-search>
               <Label htmlFor="client_name">Nome Cliente</Label>
-              <Input
-                id="client_name"
-                value={formData.client_name}
-                onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                placeholder="Opzionale per walk-in"
-              />
+              
+              {selectedCustomer ? (
+                <div className="flex items-center gap-2 p-2 border rounded-md bg-accent/10">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{selectedCustomer.name}</p>
+                    <p className="text-xs text-muted-foreground">{selectedCustomer.email}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDeselectCustomer}
+                    className="text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    id="client_name"
+                    value={formData.client_name}
+                    onChange={(e) => {
+                      setFormData({ ...formData, client_name: e.target.value });
+                      searchCustomers(e.target.value);
+                    }}
+                    onFocus={() => {
+                      if (customerSearchResults.length > 0) {
+                        setShowCustomerDropdown(true);
+                      }
+                    }}
+                    placeholder="Cerca cliente esistente o inserisci nuovo nome"
+                  />
+                  
+                  {showCustomerDropdown && customerSearchResults.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                      {isSearching ? (
+                        <div className="p-4 text-center text-sm text-muted-foreground">
+                          Ricerca in corso...
+                        </div>
+                      ) : (
+                        customerSearchResults.map((customer) => (
+                          <button
+                            key={customer.id}
+                            type="button"
+                            className="w-full text-left px-4 py-3 hover:bg-accent transition-colors border-b last:border-b-0"
+                            onClick={() => handleSelectCustomer(customer)}
+                          >
+                            <p className="font-medium text-sm">{customer.display_name}</p>
+                            <p className="text-xs text-muted-foreground">{customer.email}</p>
+                            {customer.phone && (
+                              <p className="text-xs text-muted-foreground">{customer.phone}</p>
+                            )}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -504,6 +646,8 @@ export const CalendarManager = () => {
                   type="email"
                   value={formData.client_email}
                   onChange={(e) => setFormData({ ...formData, client_email: e.target.value })}
+                  disabled={!!selectedCustomer}
+                  className={selectedCustomer ? "bg-muted" : ""}
                 />
               </div>
               <div>
@@ -512,12 +656,14 @@ export const CalendarManager = () => {
                   id="client_phone"
                   value={formData.client_phone}
                   onChange={(e) => setFormData({ ...formData, client_phone: e.target.value })}
+                  disabled={!!selectedCustomer}
+                  className={selectedCustomer ? "bg-muted" : ""}
                 />
               </div>
             </div>
 
-            {/* Customer Note Section - Only shown when editing an appointment with user_id */}
-            {editingAppointment?.user_id && (
+            {/* Customer Note Section - Shown when editing or when customer is selected */}
+            {(editingAppointment?.user_id || selectedCustomer) && (
               <>
                 <Separator className="my-4" />
                 <div className="space-y-2">

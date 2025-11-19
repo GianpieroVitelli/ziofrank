@@ -3,9 +3,15 @@ import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-// Helper function to format date for ICS (YYYYMMDDTHHMMSSZ)
+// Helper function to format date for ICS in local timezone (YYYYMMDDTHHMMSS)
 const formatICSDate = (date: Date): string => {
-  return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  return `${year}${month}${day}T${hours}${minutes}${seconds}`;
 };
 
 // Generate ICS file content
@@ -22,10 +28,25 @@ const generateICS = (
     'VERSION:2.0',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Rome',
+    'BEGIN:STANDARD',
+    'DTSTART:19701025T030000',
+    'RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'END:STANDARD',
+    'BEGIN:DAYLIGHT',
+    'DTSTART:19700329T020000',
+    'RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'END:DAYLIGHT',
+    'END:VTIMEZONE',
     'BEGIN:VEVENT',
     `UID:${appointmentId}`,
-    `DTSTART:${formatICSDate(startTime)}`,
-    `DTEND:${formatICSDate(endTime)}`,
+    `DTSTART;TZID=Europe/Rome:${formatICSDate(startTime)}`,
+    `DTEND;TZID=Europe/Rome:${formatICSDate(endTime)}`,
     `SUMMARY:${summary}`,
     `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
     `LOCATION:${location}`,

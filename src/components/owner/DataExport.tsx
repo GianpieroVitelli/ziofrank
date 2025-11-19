@@ -113,8 +113,8 @@ export const DataExport = () => {
       ];
 
       // Download
-      const timestamp = format(new Date(), "yyyyMMdd_HHmmss");
-      XLSX.writeFile(wb, `clienti_${timestamp}.xlsx`);
+      const dateStr = format(new Date(), "dd_MM_yyyy");
+      XLSX.writeFile(wb, `lista_clienti_aggiornata_al_${dateStr}.xlsx`);
 
       toast.success(`File scaricato con successo! (${exportData.length} clienti)`);
     } catch (error: any) {
@@ -198,8 +198,8 @@ export const DataExport = () => {
       ];
 
       // Download
-      const timestamp = format(new Date(), "yyyyMMdd_HHmmss");
-      XLSX.writeFile(wb, `appuntamenti_${periodLabel}_${timestamp}.xlsx`);
+      const dateStr = format(new Date(), "dd_MM_yyyy");
+      XLSX.writeFile(wb, `appuntamenti_${periodLabel}_dal_${dateStr}.xlsx`);
 
       toast.success(`File scaricato con successo! (${exportData.length} appuntamenti)`);
       setShowPeriodSelection(false);

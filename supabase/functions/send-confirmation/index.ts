@@ -31,13 +31,6 @@ const generateICS = (
     `SUMMARY:${summary}`,
     `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
     `LOCATION:${location}`,
-    'STATUS:CONFIRMED',
-    'SEQUENCE:0',
-    'BEGIN:VALARM',
-    'TRIGGER:-PT24H',
-    'ACTION:DISPLAY',
-    'DESCRIPTION:Reminder: Appointment tomorrow',
-    'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR'
   ].join('\r\n');
@@ -269,6 +262,7 @@ const handler = async (req: Request): Promise<Response> => {
         {
           filename: 'appuntamento.ics',
           content: btoa(unescape(encodeURIComponent(icsContent))),
+          contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
         },
       ],
     });

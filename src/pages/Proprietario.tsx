@@ -130,7 +130,7 @@ const Proprietario = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" variant="outline">Modifica Impostazioni</Button>
+                    <Button className="w-full">Modifica Impostazioni</Button>
                   </CardContent>
                 </Card>
 
@@ -143,7 +143,7 @@ const Proprietario = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" variant="outline">
+                    <Button className="w-full">
                       Esporta Dati
                     </Button>
                   </CardContent>

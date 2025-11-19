@@ -43,6 +43,13 @@ interface TimeSlot {
   blockId?: string;
 }
 
+interface DayOverride {
+  id: string;
+  day: string;
+  state: "OPEN" | "CLOSED";
+  reason: string | null;
+}
+
 export const CalendarManager = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -64,6 +71,7 @@ export const CalendarManager = () => {
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [shopSettings, setShopSettings] = useState<any>(null);
   const [slotBlocks, setSlotBlocks] = useState<any[]>([]);
+  const [dayOverride, setDayOverride] = useState<DayOverride | null>(null);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
@@ -142,6 +150,15 @@ export const CalendarManager = () => {
         .eq("day", format(date, "yyyy-MM-dd"));
 
       setSlotBlocks(blocksData || []);
+
+      // Load day override for the selected date
+      const { data: overrideData } = await supabase
+        .from("day_overrides")
+        .select("*")
+        .eq("day", format(date, "yyyy-MM-dd"))
+        .maybeSingle();
+
+      setDayOverride(overrideData as DayOverride | null);
     } catch (error: any) {
       console.error("Error loading appointments:", error);
       toast.error("Errore nel caricamento degli appuntamenti");
@@ -512,6 +529,11 @@ export const CalendarManager = () => {
   const generateTimeSlots = (date: Date): TimeSlot[] => {
     if (!shopSettings) return [];
     
+    // Se la giornata è chiusa manualmente, non mostrare slot
+    if (dayOverride?.state === "CLOSED") {
+      return [];
+    }
+    
     const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     const dayName = dayNames[date.getDay()];
     
@@ -690,6 +712,20 @@ export const CalendarManager = () => {
               const timeSlots = generateTimeSlots(selectedDate!);
               
               if (timeSlots.length === 0) {
+                // Controlla se la giornata è stata chiusa manualmente
+                if (dayOverride?.state === "CLOSED") {
+                  return (
+                    <div className="text-center py-12">
+                      <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-destructive" />
+                      <p className="text-destructive font-semibold text-lg">Giornata chiusa</p>
+                      {dayOverride.reason && (
+                        <p className="text-sm text-muted-foreground mt-2">{dayOverride.reason}</p>
+                      )}
+                    </div>
+                  );
+                }
+                
+                // Giornata normalmente chiusa (senza override)
                 return (
                   <div className="text-center py-12">
                     <CalendarIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />

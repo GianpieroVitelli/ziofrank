@@ -256,28 +256,28 @@ const Prenota = () => {
         </div>
       </header>
 
-      <main className="w-full px-2 sm:px-4 md:px-6 py-4 md:py-8 pb-24 overflow-x-hidden max-w-7xl mx-auto">
+      <main className="w-full px-2 sm:px-4 md:px-8 lg:px-12 py-4 md:py-8 pb-24 overflow-x-hidden max-w-7xl mx-auto">
         <div className="w-full">
           <div className="mb-4 md:mb-8 text-center px-2">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 md:mb-2">Prenota il tuo appuntamento</h2>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Scegli data e orario per il tuo taglio</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-10 w-full">
             <Card className="w-full overflow-hidden">
-              <CardHeader className="pb-1 px-3 sm:px-4 md:px-6 pt-3 sm:pt-4">
+              <CardHeader className="pb-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4">
                 <CardTitle className="text-base sm:text-lg md:text-xl">Seleziona la data</CardTitle>
                 
               </CardHeader>
               <CardContent className="flex justify-center px-1 sm:px-2 md:px-4">
-                <div className="w-full max-w-full overflow-hidden flex justify-center">
-                  <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))} locale={it} className="rounded-md border scale-100 sm:scale-110 md:scale-125 origin-center [&_button]:text-sm sm:[&_button]:text-base md:[&_button]:text-lg [&_button]:h-9 sm:[&_button]:h-10 md:[&_button]:h-11 [&_button]:w-9 sm:[&_button]:w-10 md:[&_button]:w-11" />
+                <div className="w-full max-w-md overflow-hidden flex justify-center">
+                  <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))} locale={it} className="rounded-md border scale-100 sm:scale-110 origin-center [&_button]:text-sm sm:[&_button]:text-base md:[&_button]:text-lg [&_button]:h-9 sm:[&_button]:h-10 md:[&_button]:h-11 [&_button]:w-9 sm:[&_button]:w-10 md:[&_button]:w-11" />
                 </div>
               </CardContent>
             </Card>
 
             <Card className="w-full overflow-hidden">
-              <CardHeader className="pb-2 px-3 sm:px-4 md:px-6">
+              <CardHeader className="pb-2 px-3 sm:px-4 md:px-6 lg:px-8">
                 <CardTitle className="text-base sm:text-lg md:text-xl">Orari disponibili</CardTitle>
                 <CardDescription className="text-xs sm:text-sm break-words">
                   {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy", {
@@ -285,7 +285,7 @@ const Prenota = () => {
                 }) : "Seleziona una data"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="px-2 sm:px-3 md:px-6">
+              <CardContent className="px-2 sm:px-3 md:px-6 lg:px-8">
                 {isBlocked ? (
                   <div className="text-center py-8">
                     <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -307,14 +307,14 @@ const Prenota = () => {
                       Nessun orario disponibile per questa data
                     </p>
                   </div> : <>
-                    <div className="max-h-[350px] sm:max-h-[400px] md:max-h-none overflow-y-auto scrollbar-hide">
-                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full">
+                    <div className="max-h-[350px] sm:max-h-[400px] md:max-h-[500px] lg:max-h-[600px] overflow-y-auto scrollbar-hide">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 w-full">
                         {allSlots.map(slot => <Button key={slot.time} onClick={() => slot.available && handleSlotSelection(slot.time)} disabled={!slot.available || bookingSlot !== null} variant="outline" className={
                             slot.available && selectedSlot === slot.time
-                              ? "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-600 font-medium whitespace-nowrap"
+                              ? "h-10 sm:h-11 md:h-11 lg:h-12 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-600 font-medium whitespace-nowrap"
                               : slot.available
-                              ? "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 hover:bg-accent hover:text-accent-foreground font-medium whitespace-nowrap"
-                              : "h-10 sm:h-11 md:h-12 lg:h-14 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-medium whitespace-nowrap"
+                              ? "h-10 sm:h-11 md:h-11 lg:h-12 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 hover:bg-accent hover:text-accent-foreground font-medium whitespace-nowrap"
+                              : "h-10 sm:h-11 md:h-11 lg:h-12 text-xs sm:text-sm md:text-base px-1 sm:px-2 md:px-3 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-medium whitespace-nowrap"
                           }>
                             {slot.time}
                           </Button>)}
@@ -327,7 +327,7 @@ const Prenota = () => {
                           size="lg"
                           onClick={handleConfirmBooking}
                           disabled={bookingSlot !== null}
-                          className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-5 text-sm sm:text-base md:text-lg lg:text-xl px-3 sm:px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold"
+                          className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-4 text-sm sm:text-base md:text-lg lg:text-lg px-3 sm:px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold"
                         >
                           {bookingSlot ? "Prenotazione in corso..." : "Conferma Prenotazione"}
                         </Button>

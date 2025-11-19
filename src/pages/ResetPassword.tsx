@@ -13,20 +13,37 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isValidSession, setIsValidSession] = useState(false);
+  const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Verifica se c'è una sessione valida (token da email)
-    const checkSession = async () => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsValidSession(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsValidSession(false);
+        toast.error("Sessione scaduta");
+        navigate("/auth");
+      }
+    });
+
+    const checkExistingSession = async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsValidSession(true);
       } else {
-        toast.error("Link non valido o scaduto");
+        setIsValidSession(false);
+        toast.error("Link non valido o scaduto. Richiedi un nuovo link.");
         navigate("/auth");
       }
     };
-    checkSession();
+
+    checkExistingSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -64,11 +81,25 @@ const ResetPassword = () => {
     }
   };
 
-  if (!isValidSession) {
+  if (isValidSession === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Verifica del link in corso...</p>
+          <p className="text-xs text-muted-foreground mt-2">Attendere qualche istante</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isValidSession === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-destructive font-semibold mb-2">⚠️ Link non valido o scaduto</p>
+          <p className="text-muted-foreground text-sm mb-4">Richiedi un nuovo link di reset password</p>
+          <Button onClick={() => navigate("/auth")}>Torna al Login</Button>
         </div>
       </div>
     );

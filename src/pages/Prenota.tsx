@@ -118,11 +118,15 @@ const Prenota = () => {
       // Get existing appointments for this day
       const startOfDay = new Date(zonedDate);
       startOfDay.setHours(0, 0, 0, 0);
+      const startOfDayUTC = fromZonedTime(startOfDay, timezone);
+      
       const endOfDay = new Date(zonedDate);
       endOfDay.setHours(23, 59, 59, 999);
+      const endOfDayUTC = fromZonedTime(endOfDay, timezone);
+      
       const {
         data: appointments
-      } = await supabase.from("appointments").select("*").eq("status", "CONFIRMED").gte("start_time", startOfDay.toISOString()).lte("start_time", endOfDay.toISOString());
+      } = await supabase.from("appointments").select("*").eq("status", "CONFIRMED").gte("start_time", startOfDayUTC.toISOString()).lte("start_time", endOfDayUTC.toISOString());
 
       // Create set of booked slots
       const bookedSlotsSet = new Set((appointments || []).map(apt => {

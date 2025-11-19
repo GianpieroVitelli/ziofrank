@@ -104,7 +104,7 @@ const Proprietario = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full" variant="outline">Gestisci Orari</Button>
+                    <Button className="w-full">Gestisci Orari</Button>
                   </CardContent>
                 </Card>
 

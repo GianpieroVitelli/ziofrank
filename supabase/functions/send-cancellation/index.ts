@@ -2,6 +2,9 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { format } from "https://esm.sh/v135/date-fns@3.6.0";
+import { toZonedTime } from "https://esm.sh/v135/date-fns-tz@3.2.0";
+import { it } from "https://esm.sh/v135/date-fns@3.6.0/locale/it";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -105,18 +108,13 @@ const handler = async (req: Request): Promise<Response> => {
     const emailBcc = settings?.email_bcc;
     const websiteUrl = settings?.website_url || "https://tuosito.it";
 
-    // Format date and time
+    // Format date and time in shop timezone
+    const timezone = settings?.timezone || "Europe/Rome";
     const startTime = new Date(appointment.start_time);
-    const dateStr = startTime.toLocaleDateString("it-IT", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-    const timeStr = startTime.toLocaleTimeString("it-IT", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const startTimeZoned = toZonedTime(startTime, timezone);
+    
+    const dateStr = format(startTimeZoned, "EEEE d MMMM yyyy", { locale: it });
+    const timeStr = format(startTimeZoned, "HH:mm");
 
     const clientEmail = appointment.client_email;
     const clientName = appointment.client_name || "Cliente";

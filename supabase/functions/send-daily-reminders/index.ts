@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { format } from "https://esm.sh/v135/date-fns@3.6.0";
+import { toZonedTime } from "https://esm.sh/v135/date-fns-tz@3.2.0";
+import { it } from "https://esm.sh/v135/date-fns@3.6.0/locale/it";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -132,10 +135,8 @@ const handler = async (req: Request): Promise<Response> => {
       }
 
       const startTime = new Date(appointment.start_time);
-      const timeStr = startTime.toLocaleTimeString("it-IT", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const startTimeZoned = toZonedTime(startTime, timezone);
+      const timeStr = format(startTimeZoned, "HH:mm");
 
       const isToday = daysAhead === 0;
       const whenText = isToday ? "oggi" : "domani";
@@ -159,11 +160,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <div style="background-color: ${backgroundColor}; border-left: 4px solid ${borderColor}; padding: 20px; margin: 20px 0;">
                 <h2 style="margin-top: 0; color: ${textColor};">Dettagli Appuntamento</h2>
-                <p><strong>📅 Data:</strong> ${startTime.toLocaleDateString('it-IT', { 
-                  weekday: 'long', 
-                  day: 'numeric', 
-                  month: 'long' 
-                })}</p>
+                <p><strong>📅 Data:</strong> ${format(startTimeZoned, "EEEE d MMMM", { locale: it })}</p>
                 <p><strong>🕐 Orario:</strong> ${timeStr} (durata 30 minuti)</p>
                 <p><strong>📍 Indirizzo:</strong> ${shopAddress}</p>
               </div>

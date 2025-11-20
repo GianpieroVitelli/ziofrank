@@ -23,6 +23,37 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get shop settings first to check timezone and reminder_hour
+    const { data: settings } = await supabase
+      .from("shop_settings")
+      .select("*")
+      .single();
+
+    const timezone = settings?.timezone || "Europe/Rome";
+    const reminderHour = settings?.reminder_hour || 10;
+
+    // Check current hour in the shop's timezone
+    const nowUTC = new Date();
+    const nowLocal = toZonedTime(nowUTC, timezone);
+    const currentHour = nowLocal.getHours();
+
+    console.log(`Current time: ${nowUTC.toISOString()} (UTC) = ${format(nowLocal, "HH:mm")} (${timezone})`);
+    console.log(`Reminder hour configured: ${reminderHour}, current hour: ${currentHour}`);
+
+    // Only proceed if current hour matches reminder_hour
+    if (currentHour !== reminderHour) {
+      console.log(`Not the right time to send reminders. Waiting for ${reminderHour}:00`);
+      return new Response(
+        JSON.stringify({ message: `Attesa per l'orario configurato (${reminderHour}:00)` }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log(`✓ Correct time for sending reminders!`);
+
     // Parse request body to get days_ahead parameter
     let daysAhead = 0; // default: reminder for today
     try {
@@ -34,17 +65,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Processing reminders for days_ahead=${daysAhead}`);
 
-    // Get shop settings
-    const { data: settings } = await supabase
-      .from("shop_settings")
-      .select("*")
-      .single();
-
     const shopName = settings?.shop_name || "ZIO FRANK";
     const shopAddress = settings?.address || "Via Roma 1, 00100 Roma";
     const shopPhone = settings?.phone || "+39 06 1234567";
     const emailFrom = settings?.email_from || "info@ziofrank.it";
-    const timezone = settings?.timezone || "Europe/Rome";
     const websiteUrl = settings?.website_url || "https://tuosito.it";
 
     // Calculate target date based on days_ahead parameter

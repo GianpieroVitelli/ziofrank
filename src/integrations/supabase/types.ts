@@ -318,6 +318,7 @@ export type Database = {
           open_hours: Json
           phone: string
           reminder_hour: number
+          reminder_hour_next_day: number | null
           shop_name: string
           social_links: Json | null
           timezone: string
@@ -335,6 +336,7 @@ export type Database = {
           open_hours?: Json
           phone?: string
           reminder_hour?: number
+          reminder_hour_next_day?: number | null
           shop_name?: string
           social_links?: Json | null
           timezone?: string
@@ -352,6 +354,7 @@ export type Database = {
           open_hours?: Json
           phone?: string
           reminder_hour?: number
+          reminder_hour_next_day?: number | null
           shop_name?: string
           social_links?: Json | null
           timezone?: string

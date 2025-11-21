@@ -23,36 +23,15 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get shop settings first to check timezone and reminder_hour
+    // Get shop settings first to check timezone and reminder hours
     const { data: settings } = await supabase
       .from("shop_settings")
       .select("*")
       .single();
 
     const timezone = settings?.timezone || "Europe/Rome";
-    const reminderHour = settings?.reminder_hour || 10;
-
-    // Check current hour in the shop's timezone
-    const nowUTC = new Date();
-    const nowLocal = toZonedTime(nowUTC, timezone);
-    const currentHour = nowLocal.getHours();
-
-    console.log(`Current time: ${nowUTC.toISOString()} (UTC) = ${format(nowLocal, "HH:mm")} (${timezone})`);
-    console.log(`Reminder hour configured: ${reminderHour}, current hour: ${currentHour}`);
-
-    // Only proceed if current hour matches reminder_hour
-    if (currentHour !== reminderHour) {
-      console.log(`Not the right time to send reminders. Waiting for ${reminderHour}:00`);
-      return new Response(
-        JSON.stringify({ message: `Attesa per l'orario configurato (${reminderHour}:00)` }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
-
-    console.log(`✓ Correct time for sending reminders!`);
+    const reminderHour = settings?.reminder_hour || 8;
+    const reminderHourNextDay = settings?.reminder_hour_next_day || 10;
 
     // Parse request body to get days_ahead parameter
     let daysAhead = 0; // default: reminder for today
@@ -64,6 +43,37 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log(`Processing reminders for days_ahead=${daysAhead}`);
+
+    // Determine which reminder hour to use based on days_ahead
+    const targetReminderHour = daysAhead === 1 ? reminderHourNextDay : reminderHour;
+    
+    // Check current hour in the shop's timezone
+    const nowUTC = new Date();
+    const nowLocal = toZonedTime(nowUTC, timezone);
+    const currentHour = nowLocal.getHours();
+
+    console.log(`Current time: ${nowUTC.toISOString()} (UTC) = ${format(nowLocal, "HH:mm")} (${timezone})`);
+    console.log(`Target reminder hour: ${targetReminderHour}, current hour: ${currentHour}`);
+    console.log(`Reminder type: ${daysAhead === 0 ? 'same day (8 AM)' : 'next day (10 AM)'}`);
+
+    // Only proceed if current hour matches target reminder hour
+    if (currentHour !== targetReminderHour) {
+      console.log(`Not the right time to send reminders. Waiting for ${targetReminderHour}:00`);
+      return new Response(
+        JSON.stringify({ 
+          message: `Attesa per l'orario configurato (${targetReminderHour}:00)`,
+          days_ahead: daysAhead,
+          target_hour: targetReminderHour,
+          current_hour: currentHour
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    console.log(`✓ Correct time for sending reminders!`);
 
     const shopName = settings?.shop_name || "ZIO FRANK";
     const shopAddress = settings?.address || "Via Roma 1, 00100 Roma";

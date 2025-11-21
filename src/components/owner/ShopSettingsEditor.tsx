@@ -18,6 +18,8 @@ interface ShopSettings {
   email_from: string;
   social_links: any;
   open_hours: any;
+  reminder_hour: number;
+  reminder_hour_next_day: number;
 }
 
 export const ShopSettingsEditor = () => {
@@ -61,6 +63,8 @@ export const ShopSettingsEditor = () => {
           email_from: settings.email_from,
           social_links: settings.social_links,
           open_hours: settings.open_hours,
+          reminder_hour: settings.reminder_hour,
+          reminder_hour_next_day: settings.reminder_hour_next_day,
         })
         .eq("id", settings.id);
 
@@ -192,6 +196,41 @@ export const ShopSettingsEditor = () => {
             openHours={settings.open_hours}
             onChange={(openHours) => setSettings({ ...settings, open_hours: openHours })}
           />
+
+          <div className="border-t pt-4 mt-4">
+            <h3 className="font-semibold mb-4">Orari Invio Reminder</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="reminder_hour">Reminder Appuntamenti di Oggi (ore)</Label>
+                <Input
+                  id="reminder_hour"
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={settings.reminder_hour}
+                  onChange={(e) => setSettings({ ...settings, reminder_hour: parseInt(e.target.value) || 8 })}
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Orario di invio reminder per appuntamenti del giorno stesso
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="reminder_hour_next_day">Reminder Appuntamenti di Domani (ore)</Label>
+                <Input
+                  id="reminder_hour_next_day"
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={settings.reminder_hour_next_day}
+                  onChange={(e) => setSettings({ ...settings, reminder_hour_next_day: parseInt(e.target.value) || 10 })}
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Orario di invio reminder il giorno prima dell'appuntamento
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="flex justify-end pt-4">
             <Button onClick={handleSave} disabled={saving}>

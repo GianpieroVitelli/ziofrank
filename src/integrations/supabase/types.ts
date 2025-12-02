@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointment_services: {
+        Row: {
+          appointment_id: string
+          created_at: string
+          duration_at_booking: number
+          id: string
+          service_id: string
+        }
+        Insert: {
+          appointment_id: string
+          created_at?: string
+          duration_at_booking: number
+          id?: string
+          service_id: string
+        }
+        Update: {
+          appointment_id?: string
+          created_at?: string
+          duration_at_booking?: number
+          id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_services_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           client_email: string | null
@@ -306,6 +345,42 @@ export type Database = {
         }
         Relationships: []
       }
+      services: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          name: string
+          price: number | null
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shop_settings: {
         Row: {
           address: string
@@ -320,6 +395,7 @@ export type Database = {
           reminder_hour: number
           reminder_hour_next_day: number | null
           shop_name: string
+          show_prices_to_customers: boolean
           social_links: Json | null
           timezone: string
           updated_at: string
@@ -338,6 +414,7 @@ export type Database = {
           reminder_hour?: number
           reminder_hour_next_day?: number | null
           shop_name?: string
+          show_prices_to_customers?: boolean
           social_links?: Json | null
           timezone?: string
           updated_at?: string
@@ -356,6 +433,7 @@ export type Database = {
           reminder_hour?: number
           reminder_hour_next_day?: number | null
           shop_name?: string
+          show_prices_to_customers?: boolean
           social_links?: Json | null
           timezone?: string
           updated_at?: string

@@ -138,8 +138,8 @@ export const ServicesManager = () => {
       return;
     }
 
-    if (formData.duration_minutes < 15 || formData.duration_minutes > 240) {
-      toast.error("La durata deve essere tra 15 e 240 minuti");
+    if (formData.duration_minutes < 1) {
+      toast.error("La durata deve essere almeno 1 minuto");
       return;
     }
 
@@ -367,8 +367,7 @@ export const ServicesManager = () => {
               <Input
                 id="duration"
                 type="number"
-                min={15}
-                max={240}
+                min={1}
                 step={5}
                 value={formData.duration_minutes}
                 onChange={(e) =>

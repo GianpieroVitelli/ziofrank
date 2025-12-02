@@ -4,40 +4,59 @@ import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
-import { Scissors, LogOut, Clock, Phone } from "lucide-react";
+import { Scissors, LogOut, Clock, Phone, Euro, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+
+interface Service {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  price: number | null;
+  description: string | null;
+}
+
+type BookingStep = 'services' | 'date' | 'time';
+
 const Prenota = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [allSlots, setAllSlots] = useState<{
-    time: string;
-    available: boolean;
-  }[]>([]);
-  const [hasBookedSlots, setHasBookedSlots] = useState(false);
+  const [step, setStep] = useState<BookingStep>('services');
+  
+  // Services state
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [showPrices, setShowPrices] = useState(true);
+  const [loadingServices, setLoadingServices] = useState(true);
+  
+  // Date and slot state
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [allSlots, setAllSlots] = useState<{ time: string; available: boolean; }[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [bookingSlot, setBookingSlot] = useState<string | null>(null);
   const [isBlocked, setIsBlocked] = useState(false);
+  
   const timezone = "Europe/Rome";
+
+  // Calculate total duration based on selected services
+  const totalDuration = services
+    .filter(s => selectedServices.includes(s.id))
+    .reduce((sum, s) => sum + s.duration_minutes, 0);
+
   useEffect(() => {
     const checkAuth = async () => {
-      const {
-        data: {
-          session
-        }
-      } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         navigate("/auth");
         return;
       }
       setUser(session.user);
 
-      // Check if user is blocked
       const { data: profile } = await supabase
         .from("profiles")
         .select("is_blocked")
@@ -49,11 +68,8 @@ const Prenota = () => {
       }
     };
     checkAuth();
-    const {
-      data: {
-        subscription
-      }
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
         navigate("/auth");
       } else {
@@ -62,52 +78,87 @@ const Prenota = () => {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Load services and shop settings
   useEffect(() => {
-    if (selectedDate) {
+    const loadServicesAndSettings = async () => {
+      setLoadingServices(true);
+      
+      const [servicesResult, settingsResult] = await Promise.all([
+        supabase.from("services").select("*").eq("is_active", true).order("sort_order"),
+        supabase.from("shop_settings").select("show_prices_to_customers").limit(1).maybeSingle()
+      ]);
+
+      if (servicesResult.data) {
+        setServices(servicesResult.data);
+      }
+      if (settingsResult.data) {
+        setShowPrices(settingsResult.data.show_prices_to_customers);
+      }
+      
+      setLoadingServices(false);
+    };
+    loadServicesAndSettings();
+  }, []);
+
+  // Load available slots when date changes (only when on time step)
+  useEffect(() => {
+    if (selectedDate && step === 'time') {
       loadAvailableSlots(selectedDate);
     }
-  }, [selectedDate]);
+  }, [selectedDate, step, totalDuration]);
+
   const loadAvailableSlots = async (date: Date) => {
+    if (totalDuration === 0) return;
+    
     try {
       setLoading(true);
 
-      // Get shop settings
-      const {
-        data: settings
-      } = await supabase.from("shop_settings").select("*").single();
+      const { data: settings } = await supabase.from("shop_settings").select("*").single();
       if (!settings) {
         toast.error("Impossibile caricare le impostazioni del negozio");
         return;
       }
+
       const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
       const dayName = dayNames[date.getDay()];
       const openHours = settings.open_hours[dayName] || [];
+
       if (openHours.length === 0) {
         setAllSlots([]);
-        setHasBookedSlots(false);
         return;
       }
 
-      // Generate all possible slots
+      // Generate all possible starting slots (every 15 minutes)
       const slots: string[] = [];
       const zonedDate = toZonedTime(date, timezone);
       const now = toZonedTime(new Date(), timezone);
+
       for (const [start, end] of openHours) {
         const [startHour, startMin] = start.split(":").map(Number);
         const [endHour, endMin] = end.split(":").map(Number);
+        
         let currentHour = startHour;
         let currentMin = startMin;
-        while (currentHour < endHour || currentHour === endHour && currentMin < endMin) {
+        
+        // Calculate end time in minutes for this period
+        const endTimeMinutes = endHour * 60 + endMin;
+
+        while (true) {
+          const currentTimeMinutes = currentHour * 60 + currentMin;
+          // Check if there's enough time for the service before the period ends
+          if (currentTimeMinutes + totalDuration > endTimeMinutes) break;
+
           const slotTime = new Date(zonedDate);
           slotTime.setHours(currentHour, currentMin, 0, 0);
 
-          // Only show future slots (or current day after current time)
+          // Only show future slots
           if (slotTime > now) {
             slots.push(`${currentHour.toString().padStart(2, "0")}:${currentMin.toString().padStart(2, "0")}`);
           }
 
-          // Add 45 minutes
-          currentMin += 45;
+          // Move to next slot (every 15 minutes)
+          currentMin += 15;
           if (currentMin >= 60) {
             currentMin -= 60;
             currentHour += 1;
@@ -115,7 +166,7 @@ const Prenota = () => {
         }
       }
 
-      // Use RPC to get busy slots (bypasses RLS so all users see occupied slots)
+      // Get busy slots for this day
       const startOfDay = new Date(zonedDate);
       startOfDay.setHours(0, 0, 0, 0);
       const dayString = format(startOfDay, 'yyyy-MM-dd');
@@ -130,19 +181,27 @@ const Prenota = () => {
         return;
       }
 
-      // Create set of booked slots
-      const bookedSlotsSet = new Set((busySlots || []).map(slot => {
-        const slotTime = toZonedTime(new Date(slot.start_time), timezone);
-        return format(slotTime, "HH:mm");
-      }));
+      // Check each slot for availability considering total duration
+      const combinedSlots = slots.map(slot => {
+        const [slotHour, slotMin] = slot.split(":").map(Number);
+        const slotStartMinutes = slotHour * 60 + slotMin;
+        const slotEndMinutes = slotStartMinutes + totalDuration;
 
-      // Combine all slots with availability status
-      const combinedSlots = slots.map(slot => ({
-        time: slot,
-        available: !bookedSlotsSet.has(slot)
-      }));
+        // Check if any busy slot overlaps with our desired time range
+        const isOccupied = (busySlots || []).some((busy: any) => {
+          const busyStart = toZonedTime(new Date(busy.start_time), timezone);
+          const busyEnd = toZonedTime(new Date(busy.end_time), timezone);
+          const busyStartMinutes = busyStart.getHours() * 60 + busyStart.getMinutes();
+          const busyEndMinutes = busyEnd.getHours() * 60 + busyEnd.getMinutes();
+
+          // Check for overlap
+          return slotStartMinutes < busyEndMinutes && slotEndMinutes > busyStartMinutes;
+        });
+
+        return { time: slot, available: !isOccupied };
+      });
+
       setAllSlots(combinedSlots);
-      setHasBookedSlots(bookedSlotsSet.size > 0);
     } catch (error: any) {
       console.error("Error loading slots:", error);
       toast.error("Errore nel caricamento degli slot disponibili");
@@ -150,26 +209,39 @@ const Prenota = () => {
       setLoading(false);
     }
   };
+
+  const toggleService = (serviceId: string) => {
+    setSelectedServices(prev => 
+      prev.includes(serviceId) 
+        ? prev.filter(id => id !== serviceId)
+        : [...prev, serviceId]
+    );
+  };
+
   const handleSlotSelection = (slot: string) => {
     setSelectedSlot(slot);
   };
 
   const handleConfirmBooking = async () => {
-    if (!selectedSlot || !selectedDate || !user) return;
+    if (!selectedSlot || !selectedDate || !user || selectedServices.length === 0) return;
     setBookingSlot(selectedSlot);
+    
     try {
-      const slot = selectedSlot;
-      const [hour, minute] = slot.split(":").map(Number);
+      const [hour, minute] = selectedSlot.split(":").map(Number);
       const zonedDate = toZonedTime(selectedDate, timezone);
       zonedDate.setHours(hour, minute, 0, 0);
       const startTime = fromZonedTime(zonedDate, timezone);
       const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + 45);
+      endTime.setMinutes(endTime.getMinutes() + totalDuration);
 
-      // Check one more time if slot is still available (prevent race conditions)
-      const {
-        data: existingApt
-      } = await supabase.from("appointments").select("id").eq("status", "CONFIRMED").or(`and(start_time.lt.${endTime.toISOString()},end_time.gt.${startTime.toISOString()})`).maybeSingle();
+      // Check if slot is still available
+      const { data: existingApt } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("status", "CONFIRMED")
+        .or(`and(start_time.lt.${endTime.toISOString()},end_time.gt.${startTime.toISOString()})`)
+        .maybeSingle();
+
       if (existingApt) {
         toast.error("Questo slot è stato appena prenotato. Ricarico gli slot disponibili...");
         await loadAvailableSlots(selectedDate);
@@ -177,9 +249,11 @@ const Prenota = () => {
       }
 
       // Get user profile
-      const {
-        data: profile
-      } = await supabase.from("profiles").select("name, email, phone").eq("id", user.id).single();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name, email, phone")
+        .eq("id", user.id)
+        .single();
 
       // Create appointment
       const { data: newAppointment, error } = await supabase
@@ -200,18 +274,30 @@ const Prenota = () => {
 
       if (error) throw error;
 
+      // Insert appointment services
+      const appointmentServices = selectedServices.map(serviceId => {
+        const service = services.find(s => s.id === serviceId);
+        return {
+          appointment_id: newAppointment.id,
+          service_id: serviceId,
+          duration_at_booking: service?.duration_minutes || 0
+        };
+      });
+
+      const { error: servicesError } = await supabase
+        .from("appointment_services")
+        .insert(appointmentServices);
+
+      if (servicesError) {
+        console.error("Error saving appointment services:", servicesError);
+      }
+
       // Send confirmation email
       try {
-        const { error: emailError } = await supabase.functions.invoke('send-confirmation', {
+        await supabase.functions.invoke('send-confirmation', {
           body: { appointment_id: newAppointment.id }
         });
-        
-        if (emailError) {
-          console.error("Failed to send confirmation email:", emailError);
-          toast.success("Prenotazione effettuata! Email di conferma non inviata.");
-        } else {
-          toast.success("Prenotazione effettuata con successo!");
-        }
+        toast.success("Prenotazione effettuata con successo!");
       } catch (emailError) {
         console.error("Error sending confirmation email:", emailError);
         toast.success("Prenotazione effettuata! Email di conferma non inviata.");
@@ -231,12 +317,34 @@ const Prenota = () => {
       setSelectedSlot(null);
     }
   };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
+
+  const goToNextStep = () => {
+    if (step === 'services' && selectedServices.length > 0) {
+      setStep('date');
+    } else if (step === 'date' && selectedDate) {
+      setStep('time');
+    }
+  };
+
+  const goToPrevStep = () => {
+    if (step === 'time') {
+      setStep('date');
+      setSelectedSlot(null);
+    } else if (step === 'date') {
+      setStep('services');
+      setSelectedDate(undefined);
+    }
+  };
+
   if (!user) return null;
-  return <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
+
+  return (
+    <div className="min-h-screen bg-background overflow-x-hidden w-full max-w-full">
       <header className="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
         <div className="container mx-auto px-3 md:px-4 py-2 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-3">
@@ -256,103 +364,232 @@ const Prenota = () => {
         </div>
       </header>
 
-      <main className="w-full px-2 sm:px-4 md:px-8 lg:px-12 py-4 md:py-8 pb-24 overflow-x-hidden max-w-7xl mx-auto">
-        <div className="w-full">
-          <div className="mb-4 md:mb-8 text-center px-2">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 md:mb-2">Prenota il tuo appuntamento</h2>
-            <p className="text-xs sm:text-sm md:text-base text-muted-foreground">Scegli data e orario per il tuo taglio</p>
+      <main className="w-full px-2 sm:px-4 md:px-8 lg:px-12 py-4 md:py-8 pb-24 overflow-x-hidden max-w-4xl mx-auto">
+        {/* Progress indicator */}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${step === 'services' ? 'bg-primary text-primary-foreground' : selectedServices.length > 0 ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+            {selectedServices.length > 0 && step !== 'services' ? <Check className="w-4 h-4" /> : '1'}
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-10 w-full">
-            <Card className="w-full overflow-hidden">
-              <CardHeader className="pb-1 px-3 sm:px-4 md:px-6 lg:px-8 pt-3 sm:pt-4">
-                <CardTitle className="text-base sm:text-lg md:text-xl">Seleziona la data</CardTitle>
-                
-              </CardHeader>
-              <CardContent className="flex justify-center px-1 sm:px-2 md:px-4">
-                <div className="w-full max-w-md overflow-hidden flex justify-center">
-                  <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))} locale={it} className="rounded-md border scale-90 sm:scale-100 md:scale-100 origin-center [&_button]:text-xs sm:[&_button]:text-sm md:[&_button]:text-sm [&_button]:h-8 sm:[&_button]:h-9 md:[&_button]:h-9 [&_button]:w-8 sm:[&_button]:w-9 md:[&_button]:w-9" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="w-full overflow-hidden">
-              <CardHeader className="pb-2 px-3 sm:px-4 md:px-6 lg:px-8">
-                <CardTitle className="text-base sm:text-lg md:text-xl">Orari disponibili</CardTitle>
-                <CardDescription className="text-xs sm:text-sm break-words">
-                  {selectedDate ? format(selectedDate, "EEEE, d MMMM yyyy", {
-                  locale: it
-                }) : "Seleziona una data"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="px-2 sm:px-3 md:px-6 lg:px-8">
-                {isBlocked ? (
-                  <div className="text-center py-8">
-                    <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-                      <span className="text-3xl">🔒</span>
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Account Bloccato</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Il tuo account è bloccato: non puoi effettuare nuove prenotazioni.
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Contatta il negozio per maggiori informazioni.
-                    </p>
-                  </div>
-                ) : loading ? <div className="text-center py-8 text-muted-foreground">
-                    Caricamento...
-                  </div> : allSlots.length === 0 ? <div className="text-center py-8">
-                    <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">
-                      Nessun orario disponibile per questa data
-                    </p>
-                  </div> : <>
-                    <div className="max-h-[350px] sm:max-h-[400px] md:max-h-[450px] lg:max-h-[500px] overflow-y-auto overflow-x-hidden">
-                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 w-full">
-                        {allSlots.map(slot => <Button key={slot.time} onClick={() => slot.available && handleSlotSelection(slot.time)} disabled={!slot.available || bookingSlot !== null} variant="outline" className={
-                            slot.available && selectedSlot === slot.time
-                              ? "h-9 sm:h-10 md:h-10 lg:h-10 text-xs sm:text-sm md:text-sm px-1 sm:px-2 md:px-2 bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-600 font-medium whitespace-nowrap"
-                              : slot.available
-                              ? "h-9 sm:h-10 md:h-10 lg:h-10 text-xs sm:text-sm md:text-sm px-1 sm:px-2 md:px-2 hover:bg-accent hover:text-accent-foreground font-medium whitespace-nowrap"
-                              : "h-9 sm:h-10 md:h-10 lg:h-10 text-xs sm:text-sm md:text-sm px-1 sm:px-2 md:px-2 opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed font-medium whitespace-nowrap"
-                          }>
-                            {slot.time}
-                          </Button>)}
-                      </div>
-                    </div>
-                    
-                    {selectedSlot && (
-                      <div className="mt-3 sm:mt-4 md:mt-6 space-y-2">
-                        <Button
-                          size="lg"
-                          onClick={handleConfirmBooking}
-                          disabled={bookingSlot !== null}
-                          className="w-full h-auto py-3 sm:py-3 md:py-3 lg:py-3 text-sm sm:text-base md:text-base lg:text-base px-3 sm:px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold"
-                        >
-                          {bookingSlot ? "Prenotazione in corso..." : "Conferma Prenotazione"}
-                        </Button>
-                        <p className="text-xs sm:text-sm text-red-600 font-medium text-center px-2">
-                          NB: Le prenotazioni non possono essere modificate o annullate a meno di 24 ore dall'orario previsto.
-                        </p>
-                      </div>
-                    )}
-                    
-                    <div className="mt-3 sm:mt-4 md:mt-6 pt-3 sm:pt-4 md:pt-6 border-t">
-                      <Button size="lg" className="w-full h-auto py-3 sm:py-3.5 md:py-4 lg:py-5 text-xs sm:text-sm md:text-base lg:text-lg px-3 sm:px-4 bg-accent text-accent-foreground hover:bg-accent/90 leading-snug font-semibold" onClick={() => navigate("/#contatti")}>
-                        <Phone className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 mr-1.5 sm:mr-2 flex-shrink-0" />
-                        <span className="text-left break-words">
-                          L'orario che desideravi è occupato? Chiamami!
-                        </span>
-                      </Button>
-                    </div>
-                  </>}
-              </CardContent>
-            </Card>
+          <div className={`w-12 h-1 ${step !== 'services' ? 'bg-primary' : 'bg-muted'}`} />
+          <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${step === 'date' ? 'bg-primary text-primary-foreground' : selectedDate ? 'bg-green-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+            {selectedDate && step === 'time' ? <Check className="w-4 h-4" /> : '2'}
+          </div>
+          <div className={`w-12 h-1 ${step === 'time' ? 'bg-primary' : 'bg-muted'}`} />
+          <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${step === 'time' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+            3
           </div>
         </div>
+
+        {isBlocked ? (
+          <Card>
+            <CardContent className="py-8">
+              <div className="text-center">
+                <div className="mx-auto w-16 h-16 mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <span className="text-3xl">🔒</span>
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Account Bloccato</h3>
+                <p className="text-muted-foreground mb-4">
+                  Il tuo account è bloccato: non puoi effettuare nuove prenotazioni.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Contatta il negozio per maggiori informazioni.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Step 1: Service Selection */}
+            {step === 'services' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Scegli i servizi</CardTitle>
+                  <CardDescription>Seleziona uno o più servizi per il tuo appuntamento</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loadingServices ? (
+                    <div className="text-center py-8 text-muted-foreground">Caricamento servizi...</div>
+                  ) : services.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">Nessun servizio disponibile</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {services.map(service => (
+                        <div
+                          key={service.id}
+                          onClick={() => toggleService(service.id)}
+                          className={`flex items-center gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
+                            selectedServices.includes(service.id)
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={selectedServices.includes(service.id)}
+                            onCheckedChange={() => toggleService(service.id)}
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-semibold">{service.name}</h3>
+                            {service.description && (
+                              <p className="text-sm text-muted-foreground">{service.description}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4" />
+                              {service.duration_minutes} min
+                            </div>
+                            {showPrices && service.price !== null && (
+                              <div className="flex items-center gap-1 text-sm font-medium">
+                                <Euro className="w-4 h-4" />
+                                {service.price.toFixed(2)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {selectedServices.length > 0 && (
+                    <div className="mt-6 pt-4 border-t">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="font-medium">Durata totale:</span>
+                        <span className="text-lg font-bold">{totalDuration} minuti</span>
+                      </div>
+                      <Button onClick={goToNextStep} className="w-full" size="lg">
+                        Continua
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 2: Date Selection */}
+            {step === 'date' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Seleziona la data</CardTitle>
+                  <CardDescription>
+                    Servizi selezionati: {services.filter(s => selectedServices.includes(s.id)).map(s => s.name).join(', ')} ({totalDuration} min)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-center">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                      locale={it}
+                      className="rounded-md border"
+                    />
+                  </div>
+
+                  <div className="mt-6 flex gap-3">
+                    <Button variant="outline" onClick={goToPrevStep} className="flex-1">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Indietro
+                    </Button>
+                    <Button onClick={goToNextStep} disabled={!selectedDate} className="flex-1">
+                      Continua
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 3: Time Selection */}
+            {step === 'time' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-xl">Scegli l'orario</CardTitle>
+                  <CardDescription>
+                    {selectedDate && format(selectedDate, "EEEE d MMMM yyyy", { locale: it })} - {totalDuration} minuti
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="text-center py-8 text-muted-foreground">Caricamento orari...</div>
+                  ) : allSlots.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">Nessun orario disponibile per questa data</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
+                        {allSlots.map(slot => (
+                          <Button
+                            key={slot.time}
+                            onClick={() => slot.available && handleSlotSelection(slot.time)}
+                            disabled={!slot.available || bookingSlot !== null}
+                            variant="outline"
+                            className={
+                              slot.available && selectedSlot === slot.time
+                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                : slot.available
+                                ? "hover:bg-accent"
+                                : "opacity-50 bg-destructive/10 border-destructive/50 text-destructive cursor-not-allowed"
+                            }
+                          >
+                            {slot.time}
+                          </Button>
+                        ))}
+                      </div>
+
+                      {selectedSlot && (
+                        <div className="mt-6 p-4 rounded-lg bg-muted">
+                          <p className="text-sm text-center mb-3">
+                            Orario selezionato: <strong>{selectedSlot}</strong> - Fine prevista: <strong>
+                              {(() => {
+                                const [h, m] = selectedSlot.split(':').map(Number);
+                                const endMinutes = h * 60 + m + totalDuration;
+                                return `${Math.floor(endMinutes / 60).toString().padStart(2, '0')}:${(endMinutes % 60).toString().padStart(2, '0')}`;
+                              })()}
+                            </strong>
+                          </p>
+                          <Button
+                            size="lg"
+                            onClick={handleConfirmBooking}
+                            disabled={bookingSlot !== null}
+                            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold"
+                          >
+                            {bookingSlot ? "Prenotazione in corso..." : "Conferma Prenotazione"}
+                          </Button>
+                          <p className="text-xs text-destructive font-medium text-center mt-2">
+                            NB: Le prenotazioni non possono essere modificate o annullate a meno di 24 ore dall'orario previsto.
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div className="mt-6 flex gap-3">
+                    <Button variant="outline" onClick={goToPrevStep} className="flex-1">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Indietro
+                    </Button>
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t">
+                    <Button size="lg" variant="secondary" className="w-full" onClick={() => navigate("/#contatti")}>
+                      <Phone className="w-4 h-4 mr-2" />
+                      L'orario che desideravi è occupato? Chiamami!
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
       </main>
 
       <BottomNav isAuthenticated={true} />
-    </div>;
+    </div>
+  );
 };
+
 export default Prenota;

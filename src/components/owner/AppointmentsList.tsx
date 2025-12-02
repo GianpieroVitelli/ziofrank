@@ -3,11 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import { Clock, User, Phone, Mail, Calendar, Search } from "lucide-react";
+import { Clock, User, Phone, Mail, Calendar, Search, Scissors } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+interface AppointmentService {
+  service_id: string;
+  duration_at_booking: number;
+  services: {
+    name: string;
+  } | null;
+}
 
 interface Appointment {
   id: string;
@@ -21,6 +29,7 @@ interface Appointment {
   status: string;
   is_bonus: boolean;
   user_id: string | null;
+  appointment_services?: AppointmentService[];
 }
 
 export const AppointmentsList = () => {
@@ -43,7 +52,16 @@ export const AppointmentsList = () => {
       
       const { data, error } = await supabase
         .from("appointments")
-        .select("*")
+        .select(`
+          *,
+          appointment_services (
+            service_id,
+            duration_at_booking,
+            services (
+              name
+            )
+          )
+        `)
         .order(orderBy, { ascending });
 
       if (error) throw error;
@@ -216,6 +234,12 @@ export const AppointmentsList = () => {
                     {format(new Date(appointment.start_time), "HH:mm", { locale: it })} - {format(new Date(appointment.end_time), "HH:mm", { locale: it })}
                   </span>
                 </div>
+                {appointment.appointment_services && appointment.appointment_services.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Scissors className="w-4 h-4 text-muted-foreground" />
+                    <span>{appointment.appointment_services.map(as => as.services?.name).filter(Boolean).join(", ")}</span>
+                  </div>
+                )}
                 {appointment.client_name && (
                   <div className="flex items-center gap-2 text-sm">
                     <User className="w-4 h-4 text-muted-foreground" />

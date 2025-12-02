@@ -4,17 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar, CalendarClock, List, Download } from "lucide-react";
+import { Scissors, LogOut, CalendarDays, Settings, Newspaper, Calendar, CalendarClock, List, Download, Sparkles } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import { CalendarManager } from "@/components/owner/CalendarManager";
 import { ShopSettingsEditor } from "@/components/owner/ShopSettingsEditor";
 import { NewsManager } from "@/components/owner/NewsManager";
 import { AppointmentsList } from "@/components/owner/AppointmentsList";
 import { DataExport } from "@/components/owner/DataExport";
+import { ServicesManager } from "@/components/owner/ServicesManager";
+
 const Proprietario = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news" | "appointments" | "export">("dashboard");
+  const [activeView, setActiveView] = useState<"dashboard" | "calendar" | "settings" | "news" | "appointments" | "export" | "services">("dashboard");
 
   // Scroll to top when view changes
   useEffect(() => {
@@ -121,6 +123,19 @@ const Proprietario = () => {
                   </CardContent>
                 </Card>
 
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("services")}>
+                  <CardHeader>
+                    <Sparkles className="w-12 h-12 mb-4 text-primary" />
+                    <CardTitle>Gestione Servizi</CardTitle>
+                    <CardDescription>
+                      Crea, modifica e gestisci i servizi offerti ai clienti.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full">Gestisci Servizi</Button>
+                  </CardContent>
+                </Card>
+
                 <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView("settings")}>
                   <CardHeader>
                     <Settings className="w-12 h-12 mb-4 text-primary" />
@@ -196,6 +211,19 @@ const Proprietario = () => {
                 </p>
               </div>
               <DataExport />
+            </>}
+
+          {activeView === "services" && <>
+              <div className="mb-4">
+                <Button variant="ghost" onClick={() => setActiveView("dashboard")} className="mb-1 -ml-2">
+                  ← Torna al menù
+                </Button>
+                <h2 className="text-2xl font-bold mb-1">Gestione Servizi</h2>
+                <p className="text-muted-foreground text-sm">
+                  Configura i servizi che i clienti possono prenotare
+                </p>
+              </div>
+              <ServicesManager />
             </>}
         </div>
       </main>

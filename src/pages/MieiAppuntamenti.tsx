@@ -76,7 +76,16 @@ const MieiAppuntamenti = () => {
     try {
       const { data, error } = await supabase
         .from("appointments")
-        .select("*")
+        .select(`
+          *,
+          appointment_services (
+            service_id,
+            duration_at_booking,
+            services (
+              name
+            )
+          )
+        `)
         .eq("user_id", userId)
         .order("start_time", { ascending: true });
 
@@ -365,6 +374,8 @@ const MieiAppuntamenti = () => {
                     {futureAppointments.map((apt) => {
                       const startTime = toZonedTime(new Date(apt.start_time), timezone);
                       const canCancel = canCancelAppointment(apt.start_time);
+                      const services = apt.appointment_services?.map((as: any) => as.services?.name).filter(Boolean) || [];
+                      const totalDuration = apt.appointment_services?.reduce((sum: number, as: any) => sum + (as.duration_at_booking || 0), 0) || 0;
                       return (
                         <Card key={apt.id}>
                           <CardHeader>
@@ -376,8 +387,14 @@ const MieiAppuntamenti = () => {
                                 </CardTitle>
                                 <CardDescription className="flex items-center gap-2 mt-2">
                                   <Clock className="w-4 h-4" />
-                                  {format(startTime, "HH:mm")} - 45 minuti
+                                  {format(startTime, "HH:mm")} - {totalDuration > 0 ? `${totalDuration} minuti` : "Durata non specificata"}
                                 </CardDescription>
+                                {services.length > 0 && (
+                                  <CardDescription className="flex items-center gap-2 mt-1">
+                                    <Scissors className="w-4 h-4" />
+                                    {services.join(", ")}
+                                  </CardDescription>
+                                )}
                               </div>
                               <TooltipProvider>
                                 <Tooltip>

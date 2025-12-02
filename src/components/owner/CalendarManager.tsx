@@ -14,7 +14,12 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
-import { Plus, Edit, Trash2, Star, Mail, CalendarIcon, StickyNote, Save, X, Lock } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Mail, CalendarIcon, StickyNote, Save, X, Lock, Scissors, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface Appointment {
   id: string;
@@ -50,6 +55,14 @@ interface DayOverride {
   reason: string | null;
 }
 
+interface Service {
+  id: string;
+  name: string;
+  duration_minutes: number;
+  price: number | null;
+  is_active: boolean;
+}
+
 export const CalendarManager = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -72,6 +85,9 @@ export const CalendarManager = () => {
   const [shopSettings, setShopSettings] = useState<any>(null);
   const [slotBlocks, setSlotBlocks] = useState<any[]>([]);
   const [dayOverride, setDayOverride] = useState<DayOverride | null>(null);
+  const [availableServices, setAvailableServices] = useState<Service[]>([]);
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [formData, setFormData] = useState({
     date: "",
     time: "",
@@ -84,6 +100,7 @@ export const CalendarManager = () => {
 
   useEffect(() => {
     loadShopSettings();
+    loadServices();
   }, []);
 
   useEffect(() => {
@@ -107,6 +124,21 @@ export const CalendarManager = () => {
     }
   };
 
+  const loadServices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("services")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true });
+
+      if (error) throw error;
+      setAvailableServices(data || []);
+    } catch (error) {
+      console.error("Error loading services:", error);
+    }
+  };
+
   const loadAppointments = async (date: Date) => {
     try {
       setLoading(true);
@@ -117,7 +149,16 @@ export const CalendarManager = () => {
 
       const { data, error } = await supabase
         .from("appointments")
-        .select("*")
+        .select(`
+          *,
+          appointment_services (
+            service_id,
+            duration_at_booking,
+            services (
+              name
+            )
+          )
+        `)
         .gte("start_time", startOfDay.toISOString())
         .lte("start_time", endOfDay.toISOString())
         .order("start_time", { ascending: true });
@@ -245,8 +286,15 @@ export const CalendarManager = () => {
       }
 
       const startTime = new Date(`${formData.date}T${formData.time}:00`);
+      
+      // Calculate total duration from selected services
+      const totalDuration = selectedServices.reduce((sum, serviceId) => {
+        const service = availableServices.find(s => s.id === serviceId);
+        return sum + (service?.duration_minutes || 0);
+      }, 0) || 45; // Default 45 min if no services selected
+      
       const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + 45);
+      endTime.setMinutes(endTime.getMinutes() + totalDuration);
 
       const appointmentData = {
         start_time: startTime.toISOString(),
@@ -261,6 +309,8 @@ export const CalendarManager = () => {
         user_id: selectedCustomer ? selectedCustomer.id : null,
       };
 
+      let appointmentId: string;
+
       if (editingAppointment) {
         const { error } = await supabase
           .from("appointments")
@@ -268,6 +318,14 @@ export const CalendarManager = () => {
           .eq("id", editingAppointment.id);
 
         if (error) throw error;
+        appointmentId = editingAppointment.id;
+        
+        // Delete existing services
+        await supabase
+          .from("appointment_services")
+          .delete()
+          .eq("appointment_id", editingAppointment.id);
+        
         toast.success("Appuntamento aggiornato");
       } else {
         const { data: newAppointment, error } = await supabase
@@ -277,6 +335,7 @@ export const CalendarManager = () => {
           .single();
 
         if (error) throw error;
+        appointmentId = newAppointment.id;
         toast.success("Appuntamento creato");
 
         // Send confirmation email if client email is provided
@@ -292,6 +351,26 @@ export const CalendarManager = () => {
           } catch (emailError) {
             console.error("Error sending confirmation email:", emailError);
           }
+        }
+      }
+
+      // Save selected services
+      if (selectedServices.length > 0) {
+        const servicesToInsert = selectedServices.map(serviceId => {
+          const service = availableServices.find(s => s.id === serviceId);
+          return {
+            appointment_id: appointmentId,
+            service_id: serviceId,
+            duration_at_booking: service?.duration_minutes || 0,
+          };
+        });
+
+        const { error: servicesError } = await supabase
+          .from("appointment_services")
+          .insert(servicesToInsert);
+
+        if (servicesError) {
+          console.error("Error saving services:", servicesError);
         }
       }
 
@@ -352,7 +431,7 @@ export const CalendarManager = () => {
     }
   };
 
-  const openEditDialog = (appointment: Appointment) => {
+  const openEditDialog = async (appointment: Appointment) => {
     const startTime = toZonedTime(new Date(appointment.start_time), timezone);
     setEditingAppointment(appointment);
     setSelectedCustomer(null);
@@ -366,6 +445,20 @@ export const CalendarManager = () => {
       client_phone: appointment.client_phone || "",
       is_bonus: appointment.is_bonus,
     });
+    
+    // Load existing services for the appointment
+    const { data: appointmentServices } = await supabase
+      .from("appointment_services")
+      .select("service_id")
+      .eq("appointment_id", appointment.id);
+    
+    if (appointmentServices && appointmentServices.length > 0) {
+      setSelectedServices(appointmentServices.map(as => as.service_id));
+      setServicesOpen(true);
+    } else {
+      setSelectedServices([]);
+      setServicesOpen(false);
+    }
     
     // Load customer note if user_id exists
     if (appointment.user_id && customerNotes[appointment.user_id]) {
@@ -453,6 +546,8 @@ export const CalendarManager = () => {
       client_phone: "",
       is_bonus: false,
     });
+    setSelectedServices([]);
+    setServicesOpen(false);
     setCustomerNoteText("");
     setIsEditingNote(false);
     setDialogOpen(true);
@@ -473,6 +568,8 @@ export const CalendarManager = () => {
       client_phone: "",
       is_bonus: false,
     });
+    setSelectedServices([]);
+    setServicesOpen(false);
     setCustomerNoteText("");
     setIsEditingNote(false);
     setDialogOpen(true);
@@ -664,6 +761,8 @@ export const CalendarManager = () => {
       client_phone: "",
       is_bonus: false,
     });
+    setSelectedServices([]);
+    setServicesOpen(false);
   };
 
   return (
@@ -781,6 +880,7 @@ export const CalendarManager = () => {
                           // Renderizza TUTTI gli appuntamenti nello slot
                           return sortedAppointments.map((apt) => {
                             const startTime = toZonedTime(new Date(apt.start_time), timezone);
+                            const aptServices = (apt as any).appointment_services?.map((as: any) => as.services?.name).filter(Boolean) || [];
                             
                             return (
                               <div
@@ -804,6 +904,12 @@ export const CalendarManager = () => {
                                         <span className="text-xs text-destructive font-semibold">CANCELLATO</span>
                                       )}
                                     </div>
+                                    {aptServices.length > 0 && (
+                                      <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                        <Scissors className="w-3 h-3" />
+                                        {aptServices.join(", ")}
+                                      </p>
+                                    )}
                                     {apt.client_email && (
                                       <p className="text-xs sm:text-sm text-muted-foreground break-all">{apt.client_email}</p>
                                     )}
@@ -950,6 +1056,68 @@ export const CalendarManager = () => {
                 />
               </div>
             </div>
+
+            {/* Service Selection */}
+            {availableServices.length > 0 && (
+              <Collapsible open={servicesOpen} onOpenChange={setServicesOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <div className="flex items-center gap-2">
+                      <Scissors className="w-4 h-4" />
+                      <span>Servizi</span>
+                      {selectedServices.length > 0 && (
+                        <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+                          {selectedServices.length}
+                        </span>
+                      )}
+                    </div>
+                    {servicesOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-2">
+                  <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
+                    {availableServices.map((service) => (
+                      <div
+                        key={service.id}
+                        className="flex items-center space-x-3 p-2 hover:bg-muted/50 rounded-md cursor-pointer"
+                        onClick={() => {
+                          setSelectedServices(prev =>
+                            prev.includes(service.id)
+                              ? prev.filter(id => id !== service.id)
+                              : [...prev, service.id]
+                          );
+                        }}
+                      >
+                        <Checkbox
+                          checked={selectedServices.includes(service.id)}
+                          onCheckedChange={(checked) => {
+                            setSelectedServices(prev =>
+                              checked
+                                ? [...prev, service.id]
+                                : prev.filter(id => id !== service.id)
+                            );
+                          }}
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{service.name}</p>
+                          <p className="text-xs text-muted-foreground">{service.duration_minutes} min</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedServices.length > 0 && (
+                    <div className="mt-2 p-2 bg-muted/50 rounded-md">
+                      <p className="text-sm font-medium">
+                        Durata totale: {selectedServices.reduce((sum, id) => {
+                          const service = availableServices.find(s => s.id === id);
+                          return sum + (service?.duration_minutes || 0);
+                        }, 0)} minuti
+                      </p>
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             <div className="relative" data-customer-search>
               <Label htmlFor="client_name">Nome Cliente</Label>

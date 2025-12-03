@@ -12,7 +12,6 @@ import { NewsManager } from "@/components/owner/NewsManager";
 import { AppointmentsList } from "@/components/owner/AppointmentsList";
 import { DataExport } from "@/components/owner/DataExport";
 import { ServicesManager } from "@/components/owner/ServicesManager";
-
 const Proprietario = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
@@ -132,7 +131,7 @@ const Proprietario = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full">Gestisci Servizi</Button>
+                    <Button className="w-full my-[22px]">Gestisci Servizi</Button>
                   </CardContent>
                 </Card>
 
@@ -158,7 +157,7 @@ const Proprietario = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full">
+                    <Button className="w-full my-[20px]">
                       Esporta Dati
                     </Button>
                   </CardContent>

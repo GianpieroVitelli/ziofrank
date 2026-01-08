@@ -55,7 +55,7 @@ const generateICS = (
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//ZIO FRANK//Booking System//IT',
+    'PRODID:-//JesterWear//Booking System//IT',
     'CALSCALE:GREGORIAN',
     'METHOD:REQUEST',
     'BEGIN:VTIMEZONE',
@@ -74,7 +74,7 @@ const generateICS = (
     'END:DAYLIGHT',
     'END:VTIMEZONE',
     'BEGIN:VEVENT',
-    `UID:${appointmentId}@ziofrank.it`,
+    `UID:${appointmentId}@jesterwear.it`,
     `DTSTAMP:${dtstamp}`,
     `DTSTART;TZID=Europe/Rome:${formatICSDate(startTime)}`,
     `DTEND;TZID=Europe/Rome:${formatICSDate(endTime)}`,

@@ -6,6 +6,7 @@ import { format } from "https://esm.sh/v135/date-fns@3.6.0";
 import { toZonedTime } from "https://esm.sh/v135/date-fns-tz@3.2.0";
 import { it } from "https://esm.sh/v135/date-fns@3.6.0/locale/it";
 
+
 // Helper function to format date for ICS in local timezone (YYYYMMDDTHHMMSS)
 const formatICSDate = (date: Date): string => {
   const year = date.getFullYear();
@@ -17,20 +18,46 @@ const formatICSDate = (date: Date): string => {
   return `${year}${month}${day}T${hours}${minutes}${seconds}`;
 };
 
-// Generate ICS file content
+// Helper function to format UTC timestamp for DTSTAMP
+const formatUTCTimestamp = (): string => {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(now.getUTCDate()).padStart(2, '0');
+  const hours = String(now.getUTCHours()).padStart(2, '0');
+  const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+  const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+  return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+};
+
+// Generate ICS file content - iOS compatible with METHOD:REQUEST
 const generateICS = (
   startTime: Date,
   endTime: Date,
   summary: string,
   description: string,
   location: string,
-  appointmentId: string
+  appointmentId: string,
+  organizerEmail: string,
+  organizerName: string,
+  attendeeEmail: string,
+  attendeeName: string
 ): string => {
+  const dtstamp = formatUTCTimestamp();
+  
+  // Escape special characters in text fields
+  const escapedDescription = description.replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+  const escapedSummary = summary.replace(/,/g, '\\,').replace(/;/g, '\\;');
+  const escapedLocation = location.replace(/,/g, '\\,').replace(/;/g, '\\;');
+  const escapedOrganizerName = organizerName.replace(/,/g, '\\,').replace(/;/g, '\\;');
+  const escapedAttendeeName = attendeeName.replace(/,/g, '\\,').replace(/;/g, '\\;');
+
   const icsContent = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
+    'PRODID:-//ZIO FRANK//Booking System//IT',
     'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
+    'METHOD:REQUEST',
     'BEGIN:VTIMEZONE',
     'TZID:Europe/Rome',
     'BEGIN:STANDARD',
@@ -47,12 +74,18 @@ const generateICS = (
     'END:DAYLIGHT',
     'END:VTIMEZONE',
     'BEGIN:VEVENT',
-    `UID:${appointmentId}`,
+    `UID:${appointmentId}@ziofrank.it`,
+    `DTSTAMP:${dtstamp}`,
     `DTSTART;TZID=Europe/Rome:${formatICSDate(startTime)}`,
     `DTEND;TZID=Europe/Rome:${formatICSDate(endTime)}`,
-    `SUMMARY:${summary}`,
-    `DESCRIPTION:${description.replace(/\n/g, '\\n')}`,
-    `LOCATION:${location}`,
+    `SUMMARY:${escapedSummary}`,
+    `DESCRIPTION:${escapedDescription}`,
+    `LOCATION:${escapedLocation}`,
+    `ORGANIZER;CN=${escapedOrganizerName}:mailto:${organizerEmail}`,
+    `ATTENDEE;CN=${escapedAttendeeName};RSVP=TRUE;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:${attendeeEmail}`,
+    'SEQUENCE:0',
+    'STATUS:CONFIRMED',
+    'TRANSP:OPAQUE',
     'END:VEVENT',
     'END:VCALENDAR'
   ].join('\r\n');
@@ -205,14 +238,18 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Email del cliente non disponibile");
     }
 
-    // Generate ICS file
+    // Generate ICS file with iOS-compatible format
     const icsContent = generateICS(
-      startTime,
-      endTime,
+      startTimeZoned,
+      endTimeZoned,
       `Appuntamento - ${shopName}`,
-      `Appuntamento presso ${shopName}. Data: ${dateStr}. Orario: ${timeStr}. Indirizzo: ${shopAddress}`,
+      `Appuntamento presso ${shopName}.\nData: ${dateStr}\nOrario: ${timeStr}\nIndirizzo: ${shopAddress}`,
       shopAddress,
-      appointment_id
+      appointment_id,
+      emailFrom,
+      shopName,
+      clientEmail,
+      clientName
     );
 
     // Generate calendar links
@@ -223,6 +260,9 @@ const handler = async (req: Request): Promise<Response> => {
       `Appuntamento presso ${shopName}. Data: ${dateStr}, Orario: ${timeStr}`,
       shopAddress
     );
+
+    // Encode ICS content to base64 using btoa (safe for ASCII/UTF-8 ICS content)
+    const icsBase64 = btoa(unescape(encodeURIComponent(icsContent)));
 
     // Send email to client (and BCC to shop)
     const emailResponse = await resend.emails.send({
@@ -291,8 +331,8 @@ const handler = async (req: Request): Promise<Response> => {
       attachments: [
         {
           filename: 'appuntamento.ics',
-          content: btoa(unescape(encodeURIComponent(icsContent))),
-          contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+          content: icsBase64,
+          contentType: 'text/calendar; charset=utf-8; method=REQUEST',
         },
       ],
     });

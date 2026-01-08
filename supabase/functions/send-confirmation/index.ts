@@ -360,6 +360,14 @@ Email: ${emailFrom}
       subject: `${shopName} - Prenotazione confermata`,
       text: textContent,
       html: htmlContent,
+      // Extra headers for better Gmail/Outlook compatibility
+      headers: {
+        'Content-Class': 'urn:content-classes:calendarmessage',
+        'X-Google-Calendar-Event': 'true',
+        'X-Microsoft-CDO-Alldayevent': 'FALSE',
+        'X-Microsoft-CDO-Busystatus': 'BUSY',
+        'X-Microsoft-CDO-Importance': '1',
+      },
       // Inline iCalendar - this triggers Accept/Decline in Apple Mail & Outlook
       icalEvent: {
         method: 'REQUEST',

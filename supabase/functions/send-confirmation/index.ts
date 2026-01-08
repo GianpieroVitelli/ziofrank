@@ -52,7 +52,46 @@ const generateICS = (
   const escapedOrganizerName = organizerName.replace(/,/g, '\\,').replace(/;/g, '\\;');
   const escapedAttendeeName = attendeeName.replace(/,/g, '\\,').replace(/;/g, '\\;');
 
-  const icsContent = [
+  // Calculate reminder times
+  // Reminder 1: 10:00 AM the day before
+  const reminderDayBefore = new Date(startTime);
+  reminderDayBefore.setDate(reminderDayBefore.getDate() - 1);
+  reminderDayBefore.setHours(10, 0, 0, 0);
+
+  // Reminder 2: 8:00 AM the same day
+  const reminderSameDay = new Date(startTime);
+  reminderSameDay.setHours(8, 0, 0, 0);
+
+  // Only include reminders if they occur before the appointment
+  const includeReminder1 = reminderDayBefore < startTime;
+  const includeReminder2 = reminderSameDay < startTime;
+
+  // Build VALARM blocks
+  const alarms: string[] = [];
+  
+  if (includeReminder1) {
+    alarms.push(
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:Promemoria: ${escapedSummary} - domani`,
+      `TRIGGER;VALUE=DATE-TIME;TZID=Europe/Rome:${formatICSDate(reminderDayBefore)}`,
+      'X-APPLE-DEFAULT-ALARM:TRUE',
+      'END:VALARM'
+    );
+  }
+  
+  if (includeReminder2) {
+    alarms.push(
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      `DESCRIPTION:Promemoria: ${escapedSummary} - oggi`,
+      `TRIGGER;VALUE=DATE-TIME;TZID=Europe/Rome:${formatICSDate(reminderSameDay)}`,
+      'X-APPLE-DEFAULT-ALARM:TRUE',
+      'END:VALARM'
+    );
+  }
+
+  const icsLines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//JesterWear//Booking System//IT',
@@ -86,11 +125,12 @@ const generateICS = (
     'SEQUENCE:0',
     'STATUS:CONFIRMED',
     'TRANSP:OPAQUE',
+    ...alarms,
     'END:VEVENT',
     'END:VCALENDAR'
-  ].join('\r\n');
+  ];
   
-  return icsContent;
+  return icsLines.join('\r\n');
 };
 
 // Generate calendar links

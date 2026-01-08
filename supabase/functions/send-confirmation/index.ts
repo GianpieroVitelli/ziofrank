@@ -1,10 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { format } from "https://esm.sh/v135/date-fns@3.6.0";
 import { toZonedTime } from "https://esm.sh/v135/date-fns-tz@3.2.0";
 import { it } from "https://esm.sh/v135/date-fns@3.6.0/locale/it";
+import nodemailer from "https://esm.sh/nodemailer@6.9.9";
 
 
 // Helper function to format date for ICS in local timezone (YYYYMMDDTHHMMSS)
@@ -119,9 +119,19 @@ const generateCalendarLinks = (
   };
 };
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// Configure Nodemailer with Resend SMTP
+const transporter = nodemailer.createTransport({
+  host: "smtp.resend.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "resend",
+    pass: Deno.env.get("RESEND_API_KEY"),
+  },
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -261,16 +271,29 @@ const handler = async (req: Request): Promise<Response> => {
       shopAddress
     );
 
-    // Encode ICS content to base64 using btoa (safe for ASCII/UTF-8 ICS content)
-    const icsBase64 = btoa(unescape(encodeURIComponent(icsContent)));
+    // Plain text version
+    const textContent = `Prenotazione Confermata
 
-    // Send email to client (and BCC to shop)
-    const emailResponse = await resend.emails.send({
-      from: `${shopName} <${emailFrom}>`,
-      to: [clientEmail],
-      bcc: emailBcc ? [emailBcc] : undefined,
-      subject: `${shopName} - Prenotazione confermata`,
-      html: `
+Ciao ${clientName},
+
+La tua prenotazione presso ${shopName} è stata confermata!
+
+Dettagli Appuntamento:
+- Data: ${dateStr}
+- Orario: ${timeStr}
+- Indirizzo: ${shopAddress}
+
+Per effettuare una prenotazione o modificarne una già esistente accedi alla piattaforma: ${websiteUrl}
+
+IMPORTANTE: Non è possibile annullare o modificare l'appuntamento se mancano meno di 24 ore.
+
+Per qualsiasi domanda, contattaci:
+Tel: ${shopPhone}
+Email: ${emailFrom}
+`;
+
+    // HTML content
+    const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h1 style="color: #333;">Prenotazione Confermata</h1>
           <p>Ciao ${clientName},</p>
@@ -293,7 +316,7 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             <div style="background-color: #f0f0f0; padding: 15px; border-radius: 5px; margin-top: 20px;">
               <p style="margin: 0; color: #333; font-size: 14px;"><strong>📎 Per Apple Calendar, Thunderbird e altri:</strong></p>
-              <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Scarica il file <strong>appuntamento.ics</strong> allegato a questa email e aprilo con il tuo calendario</p>
+              <p style="margin: 5px 0 0 0; color: #666; font-size: 13px;">Scarica il file <strong>invite.ics</strong> allegato a questa email e aprilo con il tuo calendario</p>
             </div>
           </div>
 
@@ -327,12 +350,28 @@ const handler = async (req: Request): Promise<Response> => {
             Questa è una email automatica. Ti preghiamo di non rispondere direttamente.
           </p>
         </div>
-      `,
+      `;
+
+    // Send email via SMTP with inline iCalendar (iTIP)
+    const emailResponse = await transporter.sendMail({
+      from: `"${shopName}" <${emailFrom}>`,
+      to: clientEmail,
+      bcc: emailBcc || undefined,
+      subject: `${shopName} - Prenotazione confermata`,
+      text: textContent,
+      html: htmlContent,
+      // Inline iCalendar - this triggers Accept/Decline in Apple Mail & Outlook
+      icalEvent: {
+        method: 'REQUEST',
+        content: icsContent,
+        filename: 'invite.ics',
+      },
+      // Also attach as fallback for clients that don't support inline calendar
       attachments: [
         {
           filename: 'invite.ics',
-          content: icsBase64,
-          contentType: 'text/calendar; charset=utf-8; method=REQUEST; name="invite.ics"',
+          content: icsContent,
+          contentType: 'text/calendar; charset=utf-8; method=REQUEST',
         },
       ],
     });

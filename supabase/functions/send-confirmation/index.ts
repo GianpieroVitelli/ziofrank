@@ -4,7 +4,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { format } from "https://esm.sh/v135/date-fns@3.6.0";
 import { toZonedTime } from "https://esm.sh/v135/date-fns-tz@3.2.0";
 import { it } from "https://esm.sh/v135/date-fns@3.6.0/locale/it";
-import nodemailer from "https://esm.sh/nodemailer@6.9.9";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 
 // Helper function to format date for ICS in local timezone (YYYYMMDDTHHMMSS)
@@ -121,17 +121,7 @@ const generateCalendarLinks = (
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-// Configure Nodemailer with Resend SMTP
-const transporter = nodemailer.createTransport({
-  host: "smtp.resend.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: "resend",
-    pass: Deno.env.get("RESEND_API_KEY"),
-  },
-});
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -352,34 +342,22 @@ Email: ${emailFrom}
         </div>
       `;
 
-    // Send email via SMTP with inline iCalendar (iTIP)
-    const emailResponse = await transporter.sendMail({
-      from: `"${shopName}" <${emailFrom}>`,
-      to: clientEmail,
-      bcc: emailBcc || undefined,
+    // Send email via Resend API
+    const emailResponse = await resend.emails.send({
+      from: `${shopName} <${emailFrom}>`,
+      to: [clientEmail],
+      bcc: emailBcc ? [emailBcc] : undefined,
       subject: `${shopName} - Prenotazione confermata`,
       text: textContent,
       html: htmlContent,
-      // Extra headers for better Gmail/Outlook compatibility
       headers: {
         'Content-Class': 'urn:content-classes:calendarmessage',
         'X-Google-Calendar-Event': 'true',
-        'X-Microsoft-CDO-Alldayevent': 'FALSE',
-        'X-Microsoft-CDO-Busystatus': 'BUSY',
-        'X-Microsoft-CDO-Importance': '1',
       },
-      // Inline iCalendar - this triggers Accept/Decline in Apple Mail & Outlook
-      icalEvent: {
-        method: 'REQUEST',
-        content: icsContent,
-        filename: 'invite.ics',
-      },
-      // Also attach as fallback for clients that don't support inline calendar
       attachments: [
         {
           filename: 'invite.ics',
-          content: icsContent,
-          contentType: 'text/calendar; charset=utf-8; method=REQUEST',
+          content: btoa(icsContent),
         },
       ],
     });

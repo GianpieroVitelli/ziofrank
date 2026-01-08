@@ -330,9 +330,9 @@ const handler = async (req: Request): Promise<Response> => {
       `,
       attachments: [
         {
-          filename: 'appuntamento.ics',
+          filename: 'invite.ics',
           content: icsBase64,
-          contentType: 'text/calendar; charset=utf-8; method=REQUEST',
+          contentType: 'text/calendar; charset=utf-8; method=REQUEST; name="invite.ics"',
         },
       ],
     });
